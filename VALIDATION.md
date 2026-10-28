@@ -1,5 +1,12 @@
 # Validation record
 
+## v1.4.1 — desktop-only patch
+
+- All 25 Python tests passed, including the empty macOS USB-registry case. An actual port-list invocation with no VEX USB device returned an empty list successfully.
+- Kernel identity and the kernel@4.2.2-recf.4 binary remain unchanged from v1.4.0. PROS_RECF_TEST was updated from the public depot to that kernel and rebuilt cleanly with its original main.cpp preserved byte-for-byte; the installed libpros.a matches the release archive. Brain upload remains pending.
+- Windows and Intel macOS packages are built/tested in GitHub Actions; Apple silicon is built/tested locally because the hosted arm64 runner remained queued. Queued redundant jobs are canceled after the local native artifact is verified.
+
+
 ## v1.4.0 — exact kernel identity
 
 - All 24 Python tests passed locally, including nonce/sequence-matched identity acceptance, rejected wrong family/version/build/capabilities, and mandatory verification before arming.

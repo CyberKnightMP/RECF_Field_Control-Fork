@@ -1,6 +1,6 @@
-# RECF Field Control v1.4.0 — combined Controller + heartbeat app
+# RECF Field Control v1.4.1 — combined Controller + heartbeat app
 
-Download the native macOS or Windows app from [the release](https://github.com/Offbrand-Window/RECF_Field_Control/releases/tag/v1.4.0); no Python installation is required. See [desktop setup](../../DESKTOP_APP.md). The source launcher below is optional for development. This release requires its exact matching kernel identity; v1.3.0 remains separately available for older heartbeat kernels.
+Download the native macOS or Windows app from [the release](https://github.com/Offbrand-Window/RECF_Field_Control/releases/tag/v1.4.1); no Python installation is required. See [desktop setup](../../DESKTOP_APP.md). The source launcher below is optional for development. This release requires its exact matching kernel identity; v1.3.0 remains separately available for older heartbeat kernels.
 
 The original working Python version is preserved in `Controller Serial Test` and in the saved working-version ZIP. This separate edition requires a heartbeat acknowledgement from the Brain before enabling either timed phase.
 

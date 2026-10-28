@@ -8,6 +8,8 @@ The combined Controller + heartbeat application is packaged for macOS Apple sili
 
 ## Current downloads
 
+Recommended desktop download: [v1.4.1](https://github.com/Offbrand-Window/RECF_Field_Control/releases/tag/v1.4.1). This app patch handles an empty macOS USB registry and uses the unchanged v1.4.0 identity kernel (`kernel@4.2.2-recf.4`).
+
 - [v1.3.0: standalone apps and ADI guard](https://github.com/Offbrand-Window/RECF_Field_Control/releases/tag/v1.3.0) — existing heartbeat compatibility.
 - [v1.4.0: matching apps and kernel identity](https://github.com/Offbrand-Window/RECF_Field_Control/releases/tag/v1.4.0) — strict version/build verification before arming. See [identity protocol and robot API](KERNEL_IDENTITY.md).
 
@@ -47,7 +49,7 @@ Hardware cable-pull and ADI validation is still pending. Secure the robot and ve
 - [Repository migration notes](REPOSITORY_MIGRATION.md)
 - `tools/build_recf.py`: builds the overlay from the official PROS 4.2.2 archive using ARM GNU 15.2.1 and a local VEX SDK.
 - `tests/recf/`: C state/parser/watchdog and smart-motor tests.
-- `tools/python-practice-watchdog/`: Python tester source, launcher and 24 tests.
+- `tools/python-practice-watchdog/`: Python tester source, launcher and 25 tests.
 
 ```sh
 python3 tests/recf/run_native.py

@@ -1,5 +1,7 @@
 # RECF Field Control desktop app
 
+v1.4.1 is the recommended desktop build. It fixes the no-USB-device macOS scan case and uses the unchanged v1.4.0 kernel identity.
+
 One application contains the Controller connection, phase timers and Brain heartbeat sender. No separate Python installation or heartbeat process is required.
 
 ## Downloads and opening
