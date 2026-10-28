@@ -12,7 +12,7 @@
       "hot_output": "bin/hot.package.bin",
       "output": "bin/monolith.bin",
       "recf_control_state": "1.2.0",
-      "location": "https://github.com/Offbrand-Window/RECF_Control_State/releases/download/v1.2.0/kernel%404.2.2-recf.2.zip"
+      "location": "https://github.com/Offbrand-Window/RECF_Field_Control/releases/download/v1.2.0/kernel%404.2.2-recf.2.zip"
     }
   },
   {
@@ -28,7 +28,7 @@
       "hot_output": "bin/hot.package.bin",
       "output": "bin/monolith.bin",
       "recf_control_state": "1.1.0",
-      "location": "https://github.com/Offbrand-Window/RECF_Control_State/releases/download/v1.1.0/kernel%404.2.2-recf.1.zip"
+      "location": "https://github.com/Offbrand-Window/RECF_Field_Control/releases/download/v1.1.0/kernel%404.2.2-recf.1.zip"
     }
   },
   {
@@ -44,7 +44,7 @@
       "hot_output": "bin/hot.package.bin",
       "output": "bin/monolith.bin",
       "recf_control_state": "1.0.0",
-      "location": "https://github.com/Offbrand-Window/RECF_Control_State/releases/download/v1.0.0/kernel%404.2.1-recf.1.zip"
+      "location": "https://github.com/Offbrand-Window/RECF_Field_Control/releases/download/v1.0.0/kernel%404.2.1-recf.1.zip"
     }
   }
 ]

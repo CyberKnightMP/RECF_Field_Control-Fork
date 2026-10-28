@@ -9,7 +9,7 @@ Apply `kernel@4.2.2-recf.2` from RECF_Control_State v1.2.0 to the existing PROS 
 In the robot project's terminal:
 
 ```sh
-pros c add-depot recf-control-state "https://raw.githubusercontent.com/Offbrand-Window/RECF_Control_State/develop-pros-4/depot.json"
+pros c add-depot recf-control-state "https://raw.githubusercontent.com/Offbrand-Window/RECF_Field_Control/develop-pros-4/depot.json"
 pros c apply kernel@4.2.2-recf.2 --depot recf-control-state --force-apply --force
 pros make
 ```

@@ -1,141 +1,54 @@
-# RECF_Control_State
+# RECF Field Control
 
-An opt-in adaptation of PROS V5 that selects the existing `autonomous()`, `opcontrol()`, and `disabled()` callbacks from physical competition control or acknowledged desktop messages.
+RECF Field Control now contains the PROS V5 kernel adaptation and the Python practice controller. This repository was previously named **RECF_Control_State**. The former Electron desktop application is discontinued and preserved in [RECF_Field_Control_Legacy](https://github.com/Offbrand-Window/RECF_Field_Control_Legacy).
 
-## Current release: v1.2.0 — Python practice disconnect watchdog
+## Downloads
 
-Download the [kernel and Python watchdog tester](https://github.com/Offbrand-Window/RECF_Control_State/releases/tag/v1.2.0). For the working Python practice workflow, follow the [installation and usage guide](tools/python-practice-watchdog/README.md).
+Download the [v1.2.0 kernel and Python watchdog tester](https://github.com/Offbrand-Window/RECF_Field_Control/releases/tag/v1.2.0):
 
-The Brain forces Disabled after 1.5 seconds without a valid heartbeat and keeps that stop latched until a fresh Disabled handshake. Apply the kernel to the robot project, rebuild and upload it, then use the watchdog edition of the tester. The original tester does not arm this guard. No `recf_control_enable(true)` call is needed for this workflow. Hardware cable-pull verification is still required.
+- `kernel@4.2.2-recf.2.zip`: PROS 4.2.2 kernel with the native-practice disconnect watchdog.
+- `RECF-Python-Practice-Watchdog-v1.2.0.zip`: Python tester with Run Autonomous (15 seconds), Run Driver (105 seconds), and Enable/Disable.
+- Build manifest, source patch and SHA-256 checksums accompany the release.
 
-## PROS 4.2.2 update
+The kernel package and C API retain their existing names for compatibility. Existing `RECF_Control_State` repository links redirect here. The depot name `recf-control-state` remains valid.
 
-This release uses the official PROS 4.2.2 kernel, standard libraries, headers and linker scripts. Build robot projects with the PROS 4.2.2 toolchain (ARM GNU 15.2.1; C++26). The text protocol v1 and companion desktop app remain compatible. The previous 4.2.1 release is still available in the depot.
+## Install and use
 
-## Deliverables
-
-- `dist/kernel@4.2.2-recf.2.zip`: installable PROS kernel template, built from the official 4.2.2 binary archive with six modified/new ARM objects. The corresponding upstream files on develop-pros-4 differ from release 4.2.2 only in copyright comments.
-- `examples/recf_control/main.cpp`: a diagnostic program displaying the selected mode on the Brain, without moving motors or requiring LVGL.
-- `tools/build_recf.py`: reproducible overlay build using an existing VEX C++ SDK and ARM GNU toolchain.
-- `tests/recf/`: native state/parser tests and a trace driver used to compare the desktop simulator to the C implementation.
-- [**RECF Field Control**](https://github.com/Offbrand-Window/RECF_Field_Control) is the companion desktop application, with separate macOS and Windows downloads. This repository and release contain the PROS adaptation.
-
-## Install in a PROS project
-
-Use a copy of a PROS 4.2.2 project for the first hardware test. This release uses the current text protocol v1; binary bit-mask messages are not part of this version.
-
-### Install directly from this GitHub repository
-
-Run these commands in the PROS terminal inside the test project:
+In your existing robot project's PROS terminal:
 
 ```sh
-pros c add-depot recf-control-state "https://raw.githubusercontent.com/Offbrand-Window/RECF_Control_State/develop-pros-4/depot.json"
+pros c add-depot recf-control-state "https://raw.githubusercontent.com/Offbrand-Window/RECF_Field_Control/develop-pros-4/depot.json"
 pros c apply kernel@4.2.2-recf.2 --depot recf-control-state --force-apply --force
-```
-
-The depot downloads the versioned release ZIP and applies it as the project's kernel.
-
-### Or download and apply the ZIP manually
-
-Download [kernel@4.2.2-recf.2.zip](https://github.com/Offbrand-Window/RECF_Control_State/releases/download/v1.2.0/kernel%404.2.2-recf.2.zip) from [the release](https://github.com/Offbrand-Window/RECF_Control_State/releases/tag/v1.2.0). Then run:
-
-```sh
-pros c fetch "/absolute/path/to/kernel@4.2.2-recf.2.zip"
-pros c apply kernel@4.2.2-recf.2 --force-apply --force --no-download
-```
-
-Download SHA-256 checksums and the build manifest are attached to the same release.
-
-The template preserves existing user source files. The installation above also supplies the Python native-practice watchdog; follow its linked guide to rebuild, upload and arm it.
-
-### Older software mode-selector workflow
-
-Only when using the older software mode selector, add this to the project's existing `initialize()`:
-
-```cpp
-pros::c::recf_control_enable(true);
-```
-
-Alternatively, replace `src/main.cpp` in a fresh test project with `examples/recf_control/main.cpp`. Then build and upload using the project's normal PROS workflow:
-
-```sh
 pros make clean
 pros make
-pros upload
 ```
 
-An unmodified robot project does not accept software mode commands. The new header is included by `api.h`. Keep custom-kernel projects on this template: applying a stock kernel replaces these changes. To restore stock behavior, apply the official 4.2.2 kernel and remove the enable call.
+Upload the rebuilt project to the Brain using your normal PROS workflow, selecting the intended program slot. Applying the kernel on the computer alone does not update the Brain. Existing user source files are preserved; do not add `--upgrade-user-files`.
 
-## Desktop test
+Start the rebuilt program from the Controller, then open `Open Watchdog Practice.command` on macOS and connect to the Controller's USB port. The tester requests Disabled and requires a matching Brain watchdog acknowledgement before enabling either timed phase. Driver starts only when you click Run Driver. No `recf_control_enable(true)` call is needed for this native practice workflow.
 
-1. Start the diagnostic robot program.
-2. Pair the primary Controller with the Brain.
-3. Connect the computer's USB cable only to the Controller's micro-B port, leaving the Brain USB disconnected. A direct Brain USB connection is also supported as a separate control test.
-4. Open RECF Field Control and choose **Connect via USB**, then select the V5 device. Close any other terminal using that port.
-5. A successful connection requires a matching `STATUS` reply from this kernel; USB discovery alone is not success.
-6. Choose **Take software control**. The robot first selects STOP.
-7. Choose Autonomous, Driver control, or Stop and confirm the Brain's screen changes accordingly. The diagnostic does not move motors.
-8. Disconnect USB during an active software mode. After 1.5 seconds without a valid heartbeat, the kernel selects STOP. Reconnecting requires a fresh claim.
-9. Connect physical competition control: it takes priority, invalidates the software session, and follows the physical field. Disconnecting that field does not restore an old software run command.
+For full setup, connection steps, and hardware checks, see the [Python tester guide](tools/python-practice-watchdog/README.md).
 
-## Behavior
+## Disconnect behavior
 
-- Disabled by default: existing programs retain PROS's original physical/default behavior.
-- Physical competition control has full priority, including when physically enabled. Physical disabled status is never cleared by a software command.
-- Software commands are accepted only after `initialize()` finishes.
-- `competition_get_status()`, the C predicate functions and their C++ wrappers report the effective selected mode. Connected/field-system bits remain physical. `recf_control_get_physical_status()` returns the unmodified firmware value.
-- Selecting a new mode deletes the previous managed mode task and starts the existing callback for that mode. Autonomous restarts from its beginning; pause/resume is not implemented. Repeating the same active mode does not restart its callback.
-- STOP and heartbeat expiry select `disabled()`. Smart-motor commands are zeroed on software transitions and repeatedly during software STOP. PROS smart-motor movement APIs also suppress nonzero commands while software STOP is active, including commands from surviving child tasks.
-- Child tasks are not automatically deleted. Non-motor outputs (for example pneumatics), ADI PWM/servos, and direct VEX SDK calls need application-specific handling. This is software coordination, not a firmware-level competition-disable replacement.
-- **Return to physical control** sends STOP and then RELEASE. With no physical field connected, stock PROS normally selects driver control, so the app reports that result explicitly.
-- The desktop timed match runs Auton → STOP → Driver → STOP. Desktop scheduling is not a precision field clock; loss of the desktop heartbeat selects STOP.
+The tester sends heartbeats approximately every 200 ms. After 1.5 seconds without a fresh valid heartbeat, the Brain forces Disabled, stops its managed autonomous/driver callback, zeros smart motors and blocks nonzero commands through the patched standard PROS smart-motor APIs. The stop stays latched after reconnection or native Driver fallback. A fresh session while Disabled is required before enabling again.
 
-## Wire protocol v1
+The original working tester does not send these heartbeats and does not arm the guard. Use the watchdog edition with the rebuilt robot program. A program restart resets the opt-in guard; establish its handshake before enabling practice phases.
 
-ASCII records ending in LF, under 96 bytes:
+Hardware cable-pull validation is still pending. Secure the robot and verify disconnect behavior in both phases before normal use. Direct SDK calls, ADI/pneumatic outputs and separately created tasks require application-specific handling. This is not a firmware/hardware emergency stop.
 
-```text
-@RECF/1 <sequence> <session> <command>
+## Source and validation
 
-```
-
-Sequence and session are decimal nonzero uint32 values. Commands: STATUS, HELLO, PING, STOP, AUTON, DRIVER, RELEASE. STATUS is read-only. HELLO claims a fresh session into STOP. Movement commands and PING must use the current session with strictly increasing sequence numbers. Valid commands renew the 1500 ms lease; STATUS, stale or invalid commands do not. Duplicate HELLO does not reset an active session. Sessions are coordination tokens, not authentication.
-
-Replies are raw ASCII records, independent of PROS's COBS logging setting:
-
-```text
-@RECF/1 <sequence> <session> OK|ERR STOP|AUTON|DRIVER FIELD|SOFTWARE|PHYSICAL <raw-status> <reason>
-
-```
-
-A reply confirms that the mode was selected by the control engine; the system daemon applies that selection on its next iteration. It does not verify physical motor motion. Responses from unrelated or stale requests are ignored by the app. Ordinary serial input is forwarded to PROS's original parser; only the reserved prefix is consumed. Incomplete frames expire after a 500 ms inter-byte gap; overlong/binary frames are discarded.
-
-## Source map
-
-- `src/system/recf_control_core.c`: deterministic mode arbitration, sessions, parser and lease expiry.
-- `src/system/recf_control_state.c`: scheduler-safe state access, serial replies, physical status and smart-motor stopping.
-- `src/devices/controller.c`: effective status supplied to the existing PROS API.
-- `src/system/system_daemon.c`: normal callback selection, source transitions and motor stopping.
-- `src/system/dev/ser_daemon.c`: reserved-message interception before the stock input parser.
-- `src/devices/vdml_motors.c`: movement commands honor software STOP.
-- `include/pros/recf_control_state.h`: public opt-in API.
-
-## Build and validation
-
-See `VALIDATION.md` for actual checks and remaining hardware validation. The private libv5rts submodule is not needed for the supplied overlay build. It compiles the six changed/new objects with ARM GNU 15.2.1 against locally supplied, ABI-patched VEX headers and replaces matching members in the official stock archive. Remaining kernel and VEX SDK objects are retained unchanged. The public VEX SDK is not redistributed here.
+- [Watchdog protocol and limitations](PRACTICE_WATCHDOG.md)
+- [Validation record](VALIDATION.md)
+- [Repository migration notes](REPOSITORY_MIGRATION.md)
+- `tools/build_recf.py`: builds the overlay from the official PROS 4.2.2 archive using ARM GNU 15.2.1 and a local VEX SDK.
+- `tests/recf/`: C state/parser/watchdog and smart-motor tests.
+- `tools/python-practice-watchdog/`: Python tester source, launcher and 18 tests.
 
 ```sh
-python3 tools/build_recf.py --sdk /path/to/vexv5 --toolchain /path/to/arm-toolchain/bin --base /path/to/kernel-4.2.2.zip
 python3 tests/recf/run_native.py
+python3 -m unittest discover -s tools/python-practice-watchdog -p 'test_*.py'
 ```
 
-The prebuilt template and diagnostic have been compiled and linked, but have not been uploaded to or verified on a physical V5 Controller/Brain in this session.
-
-Upstream base: https://github.com/purduesigbots/pros/tree/c0897ad1f70950ea7590424d4527ea7af7d32e51
-Stock binary: https://github.com/purduesigbots/pros/releases/tag/4.2.2
-Firmware adaptation: MPL-2.0, as covered by the upstream LICENSE.
-
-
-## Python practice disconnect protection
-
-[Native practice watchdog v1.2.0](PRACTICE_WATCHDOG.md) adds a 1.5-second Brain-side heartbeat timeout with a latched Disabled state. Install `kernel@4.2.2-recf.2`, rebuild/upload your robot program, and use the separate [Python watchdog edition](tools/python-practice-watchdog/README.md). The original software selector and its protocol remain available.
+The older software mode-selector API remains available separately. It requires `pros::c::recf_control_enable(true)` in initialization; its protocol and physical-field priority are unchanged. The discontinued Electron app is retained only in the legacy archive.
