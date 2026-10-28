@@ -12,7 +12,7 @@ This release uses the official PROS 4.2.2 kernel, standard libraries, headers an
 - `examples/recf_control/main.cpp`: a diagnostic program displaying the selected mode on the Brain, without moving motors or requiring LVGL.
 - `tools/build_recf.py`: reproducible overlay build using an existing VEX C++ SDK and ARM GNU toolchain.
 - `tests/recf/`: native state/parser tests and a trace driver used to compare the desktop simulator to the C implementation.
-- **RECF Field Control** is the companion desktop application; this repository and release contain the PROS adaptation.
+- [**RECF Field Control**](https://github.com/Offbrand-Window/RECF_Field_Control) is the companion desktop application, with separate macOS and Windows downloads. This repository and release contain the PROS adaptation.
 
 ## Install in a PROS project
 
