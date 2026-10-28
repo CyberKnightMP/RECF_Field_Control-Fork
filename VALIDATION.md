@@ -7,6 +7,7 @@
 - All six overlay objects compiled for Cortex-A9 with ARM GNU 15.2.1. A clean diagnostic project containing the new template linked both cold and hot images. Existing LLEMU deprecation warnings remain.
 - The original working Python tester was preserved separately; the new tool is supplied under tools/python-practice-watchdog.
 - No live mode activation or cable-pull test was performed for this release. The actual robot project still needs the new kernel applied, rebuilt and uploaded. The release is marked as a prerelease pending hardware validation.
+- Installed `kernel@4.2.2-recf.2` from the published GitHub depot into the supplied PROS_RECF_TEST robot project. Its original main.cpp was preserved byte-for-byte, the installed libpros.a matches the published ZIP, and a clean ARM GNU 15.2.1 cold/hot build with liblvgl passed. Hardware upload remains pending because no VEX USB device was detected.
 - Coverage and output limitations are documented in [PRACTICE_WATCHDOG.md](PRACTICE_WATCHDOG.md).
 
 ## Earlier v1.1.0 validation

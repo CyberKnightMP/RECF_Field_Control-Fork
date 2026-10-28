@@ -2,13 +2,19 @@
 
 An opt-in adaptation of PROS V5 that selects the existing `autonomous()`, `opcontrol()`, and `disabled()` callbacks from physical competition control or acknowledged desktop messages.
 
+## Current release: v1.2.0 — Python practice disconnect watchdog
+
+Download the [kernel and Python watchdog tester](https://github.com/Offbrand-Window/RECF_Control_State/releases/tag/v1.2.0). For the working Python practice workflow, follow the [installation and usage guide](tools/python-practice-watchdog/README.md).
+
+The Brain forces Disabled after 1.5 seconds without a valid heartbeat and keeps that stop latched until a fresh Disabled handshake. Apply the kernel to the robot project, rebuild and upload it, then use the watchdog edition of the tester. The original tester does not arm this guard. No `recf_control_enable(true)` call is needed for this workflow. Hardware cable-pull verification is still required.
+
 ## PROS 4.2.2 update
 
 This release uses the official PROS 4.2.2 kernel, standard libraries, headers and linker scripts. Build robot projects with the PROS 4.2.2 toolchain (ARM GNU 15.2.1; C++26). The text protocol v1 and companion desktop app remain compatible. The previous 4.2.1 release is still available in the depot.
 
 ## Deliverables
 
-- `dist/kernel@4.2.2-recf.1.zip`: installable PROS kernel template, built from the official 4.2.2 binary archive with six modified/new ARM objects. The corresponding upstream files on develop-pros-4 differ from release 4.2.2 only in copyright comments.
+- `dist/kernel@4.2.2-recf.2.zip`: installable PROS kernel template, built from the official 4.2.2 binary archive with six modified/new ARM objects. The corresponding upstream files on develop-pros-4 differ from release 4.2.2 only in copyright comments.
 - `examples/recf_control/main.cpp`: a diagnostic program displaying the selected mode on the Brain, without moving motors or requiring LVGL.
 - `tools/build_recf.py`: reproducible overlay build using an existing VEX C++ SDK and ARM GNU toolchain.
 - `tests/recf/`: native state/parser tests and a trace driver used to compare the desktop simulator to the C implementation.
@@ -24,23 +30,27 @@ Run these commands in the PROS terminal inside the test project:
 
 ```sh
 pros c add-depot recf-control-state "https://raw.githubusercontent.com/Offbrand-Window/RECF_Control_State/develop-pros-4/depot.json"
-pros c apply kernel@4.2.2-recf.1 --depot recf-control-state --force-apply --force
+pros c apply kernel@4.2.2-recf.2 --depot recf-control-state --force-apply --force
 ```
 
 The depot downloads the versioned release ZIP and applies it as the project's kernel.
 
 ### Or download and apply the ZIP manually
 
-Download [kernel@4.2.2-recf.1.zip](https://github.com/Offbrand-Window/RECF_Control_State/releases/download/v1.1.0/kernel%404.2.2-recf.1.zip) from [the release](https://github.com/Offbrand-Window/RECF_Control_State/releases/tag/v1.1.0). Then run:
+Download [kernel@4.2.2-recf.2.zip](https://github.com/Offbrand-Window/RECF_Control_State/releases/download/v1.2.0/kernel%404.2.2-recf.2.zip) from [the release](https://github.com/Offbrand-Window/RECF_Control_State/releases/tag/v1.2.0). Then run:
 
 ```sh
-pros c fetch "/absolute/path/to/kernel@4.2.2-recf.1.zip"
-pros c apply kernel@4.2.2-recf.1 --force-apply --force --no-download
+pros c fetch "/absolute/path/to/kernel@4.2.2-recf.2.zip"
+pros c apply kernel@4.2.2-recf.2 --force-apply --force --no-download
 ```
 
 Download SHA-256 checksums and the build manifest are attached to the same release.
 
-The template preserves existing user source files. Add this to the project's existing `initialize()`:
+The template preserves existing user source files. The installation above also supplies the Python native-practice watchdog; follow its linked guide to rebuild, upload and arm it.
+
+### Older software mode-selector workflow
+
+Only when using the older software mode selector, add this to the project's existing `initialize()`:
 
 ```cpp
 pros::c::recf_control_enable(true);
