@@ -1,0 +1,19 @@
+name: RECF native tests
+on:
+  push:
+    branches: [develop-pros-4]
+  pull_request:
+    branches: [develop-pros-4]
+permissions:
+  contents: read
+jobs:
+  control-state:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - name: State engine, parser, and motor output tests
+        run: python3 tests/recf/run_native.py
+      - name: Check depot entry
+        run: python3 -c "import json; d=json.load(open('depot.json')); assert len(d)==1; assert d[0]['name']=='kernel'; assert d[0]['version']=='4.2.1-recf.1'; assert d[0]['target']=='v5'"

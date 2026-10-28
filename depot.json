@@ -1,0 +1,18 @@
+[
+  {
+    "py/object": "pros.conductor.templates.base_template.BaseTemplate",
+    "name": "kernel",
+    "version": "4.2.1-recf.1",
+    "supported_kernels": null,
+    "target": "v5",
+    "metadata": {
+      "cold_addr": "58720256",
+      "cold_output": "bin/cold.package.bin",
+      "hot_addr": "125829120",
+      "hot_output": "bin/hot.package.bin",
+      "output": "bin/monolith.bin",
+      "recf_control_state": "1.0.0",
+      "location": "https://github.com/Offbrand-Window/RECF_Control_State/releases/download/v1.0.0/kernel%404.2.1-recf.1.zip"
+    }
+  }
+]

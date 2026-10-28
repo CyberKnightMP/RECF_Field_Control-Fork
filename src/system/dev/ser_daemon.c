@@ -18,6 +18,7 @@
 #include <errno.h>
 
 #include "kapi.h"
+#include "system/recf_control_state.h"
 #include "pros/version.h"
 #include "system/dev/banners.h"
 #include "system/hot.h"
@@ -114,14 +115,9 @@ static inline uint8_t vex_read_char() {
 	return (uint8_t)b;
 }
 
-static void ser_daemon_task(void* ign) {
-	uint8_t command_stack[MAX_COMMAND_LENGTH];
-	size_t command_stack_idx = 0;
-
-	print_large_banner();
-
-	while (1) {
-		uint8_t b = vex_read_char();
+void ser_process_byte(uint8_t b) {
+    uint8_t command_stack[MAX_COMMAND_LENGTH];
+    size_t command_stack_idx = 0;
 		if (b == 'p') {  // TODO: make the command prefix not typeable
 			command_stack[command_stack_idx++] = b;
 			b = command_stack[command_stack_idx++] = vex_read_char();
@@ -189,7 +185,12 @@ static void ser_daemon_task(void* ign) {
 		} else {
 			inp_buffer_post(b);
 		}
-	}
+}
+
+static void ser_daemon_task(void* ign) {
+    (void)ign;
+    print_large_banner();
+    while (1) recf_control_serial_byte(vex_read_char());
 }
 
 void ser_initialize(void) {

@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include "kapi.h"
+#include "system/recf_control_state.h"
 #include "v5_api.h"
 #include "vdml/vdml.h"
 
@@ -223,7 +224,7 @@ int32_t controller_rumble(controller_id_e_t id, const char* rumble_pattern) {
 }
 
 uint8_t competition_get_status(void) {
-	return vexCompetitionStatus();
+	return recf_control_resolve(vexCompetitionStatus());
 }
 
 uint8_t competition_is_disabled(void) {

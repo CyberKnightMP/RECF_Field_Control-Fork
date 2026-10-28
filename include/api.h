@@ -50,6 +50,7 @@
 #include "pros/link.h"
 #include "pros/llemu.h"
 #include "pros/misc.h"
+#include "pros/recf_control_state.h"
 #include "pros/motors.h"
 #include "pros/optical.h"
 #include "pros/rotation.h"

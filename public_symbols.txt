@@ -37,3 +37,8 @@ queue_get_waiting
 queue_get_available
 queue_delete
 queue_reset
+
+recf_control_enable
+recf_control_is_enabled
+recf_control_is_selected
+recf_control_get_physical_status

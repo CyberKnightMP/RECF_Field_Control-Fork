@@ -15,6 +15,7 @@
 #include <stdio.h>
 
 #include "kapi.h"
+#include "system/recf_control_state.h"
 #include "pros/colors.h"
 #include "pros/motors.h"
 #include "pros/apix.h"
@@ -54,7 +55,8 @@ int32_t motor_move_absolute(int8_t port, double position, int32_t velocity) {
 	uint8_t abs_port = abs(port);
 	claim_port_i(abs_port - 1, E_DEVICE_MOTOR);
 	if (port < 0) position = -position;
-	vexDeviceMotorAbsoluteTargetSet(device->device_info, position, velocity);
+	if (recf_control_output_blocked()) vexDeviceMotorVoltageSet(device->device_info, 0);
+    else vexDeviceMotorAbsoluteTargetSet(device->device_info, position, velocity);
 	return_port(abs_port - 1, PROS_SUCCESS);
 }
 
@@ -62,7 +64,8 @@ int32_t motor_move_relative(int8_t port, double position, int32_t velocity) {
 	uint8_t abs_port = abs(port);
 	claim_port_i(abs_port - 1, E_DEVICE_MOTOR);
 	if (port < 0) position = -position;
-	vexDeviceMotorRelativeTargetSet(device->device_info, position, velocity);
+	if (recf_control_output_blocked()) vexDeviceMotorVoltageSet(device->device_info, 0);
+    else vexDeviceMotorRelativeTargetSet(device->device_info, position, velocity);
 	return_port(abs_port - 1, PROS_SUCCESS);
 }
 
@@ -70,7 +73,8 @@ int32_t motor_move_velocity(int8_t port, int32_t velocity) {
 	uint8_t abs_port = abs(port);
 	claim_port_i(abs_port - 1, E_DEVICE_MOTOR);
 	if (port < 0) velocity = -velocity;
-	vexDeviceMotorVelocitySet(device->device_info, velocity);
+	if (recf_control_output_blocked()) vexDeviceMotorVoltageSet(device->device_info, 0);
+    else vexDeviceMotorVelocitySet(device->device_info, velocity);
 	return_port(abs_port - 1, PROS_SUCCESS);
 }
 
@@ -78,7 +82,8 @@ int32_t motor_move_voltage(int8_t port, int32_t voltage) {
 	uint8_t abs_port = abs(port);
 	claim_port_i(abs_port - 1, E_DEVICE_MOTOR);
 	if (port < 0) voltage = -voltage;
-	vexDeviceMotorVoltageSet(device->device_info, voltage);
+	if (recf_control_output_blocked()) vexDeviceMotorVoltageSet(device->device_info, 0);
+    else vexDeviceMotorVoltageSet(device->device_info, voltage);
 	return_port(abs_port - 1, PROS_SUCCESS);
 }
 
@@ -86,7 +91,8 @@ int32_t motor_modify_profiled_velocity(int8_t port, int32_t velocity) {
 	uint8_t abs_port = abs(port);
 	claim_port_i(abs_port - 1, E_DEVICE_MOTOR);
 	if (port < 0) velocity = -velocity;
-	vexDeviceMotorVelocityUpdate(device->device_info, velocity);
+	if (recf_control_output_blocked()) vexDeviceMotorVoltageSet(device->device_info, 0);
+    else vexDeviceMotorVelocityUpdate(device->device_info, velocity);
 	return_port(abs_port - 1, PROS_SUCCESS);
 }
 

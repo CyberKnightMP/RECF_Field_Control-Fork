@@ -14,3 +14,7 @@ temp.errors
 .clangd/
 .cache/
 .DS_Store
+
+# RECF build outputs
+dist/
+work/

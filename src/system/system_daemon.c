@@ -12,6 +12,7 @@
  */
 
 #include "kapi.h"
+#include "system/recf_control_state.h"
 #include "system/optimizers.h"
 #include "system/user_functions.h"
 #include "v5_api.h"
@@ -61,6 +62,7 @@ static void _system_daemon_task(void* ign) {
 	// Initialize status to an invalid state to force an update the first loop
 	uint32_t status = (uint32_t)(1 << 8);
 	uint32_t task_state;
+    bool previous_software = false;
 
 	// XXX: Delay likely necessary for shared memory to get copied over
 	// (discovered b/c VDML would crash and burn)
@@ -81,13 +83,19 @@ static void _system_daemon_task(void* ign) {
 		// wait for initialize to finish
 		do_background_operations();
 	}
+    recf_control_mark_ready();
 	while (1) {
 		do_background_operations();
 
-		if (unlikely(status != competition_get_status())) {
+		uint8_t next_status = competition_get_status();
+        bool software = recf_control_is_selected();
+        bool software_boundary = software || previous_software;
+        bool source_changed = software != previous_software;
+        previous_software = software;
+		if (unlikely(status != next_status || source_changed)) {
 			// Have a new competition status, need to clean up whatever's running
 			uint32_t old_status = status;
-			status = competition_get_status();
+			status = next_status;
 			enum state_task state = E_OPCONTROL_TASK;
 			if ((status & COMPETITION_DISABLED) && (old_status & COMPETITION_DISABLED)) {
 				// Don't restart the disabled task even if other bits have changed (e.g. auton bit)
@@ -114,10 +122,17 @@ static void _system_daemon_task(void* ign) {
 				task_delete(competition_task);
 			}
 
+			if (software_boundary) recf_control_stop_motors();
+
 			competition_task = task_create_static(task_fns[state], NULL, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT,
 			                                      task_names[state], competition_task_stack, &competition_task_buffer);
 		}
 
+        // Keep zeroing smart motors while software STOP is active, including
+        // commands issued by user-created tasks that outlive a mode callback.
+        if (recf_control_is_selected() &&
+            !(recf_control_get_physical_status() & COMPETITION_CONNECTED) &&
+            (competition_get_status() & COMPETITION_DISABLED)) recf_control_stop_motors();
 		task_delay_until(&time, 2);
 	}
 }
