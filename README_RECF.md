@@ -11,13 +11,7 @@ The combined Controller + heartbeat application is packaged for macOS Apple sili
 - [v1.3.0: standalone apps and ADI guard](https://github.com/Offbrand-Window/RECF_Field_Control/releases/tag/v1.3.0) — existing heartbeat compatibility.
 - [v1.4.0: matching apps and kernel identity](https://github.com/Offbrand-Window/RECF_Field_Control/releases/tag/v1.4.0) — strict version/build verification before arming. See [identity protocol and robot API](KERNEL_IDENTITY.md).
 
-## Earlier downloads
-
-Download the [v1.2.0 kernel and Python watchdog tester](https://github.com/Offbrand-Window/RECF_Field_Control/releases/tag/v1.2.0):
-
-- `kernel@4.2.2-recf.4.zip`: PROS 4.2.2 kernel with the native-practice disconnect watchdog.
-- `RECF-Python-Practice-Watchdog-v1.2.0.zip`: Python tester with Run Autonomous (15 seconds), Run Driver (105 seconds), and Enable/Disable.
-- Build manifest, source patch and SHA-256 checksums accompany the release.
+v1.4.0 includes `kernel@4.2.2-recf.4.zip` and matching standalone app ZIPs. v1.3.0 includes `kernel@4.2.2-recf.3.zip` and its compatible apps. Each release contains build manifests and SHA-256 checksums. The original [v1.2.0 Python source tester](https://github.com/Offbrand-Window/RECF_Field_Control/releases/tag/v1.2.0) remains available separately.
 
 The kernel package and C API retain their existing names for compatibility. Existing `RECF_Control_State` repository links redirect here. The depot name `recf-control-state` remains valid.
 
@@ -34,7 +28,7 @@ pros make
 
 Upload the rebuilt project to the Brain using your normal PROS workflow, selecting the intended program slot. Applying the kernel on the computer alone does not update the Brain. Existing user source files are preserved; do not add `--upgrade-user-files`.
 
-Start the rebuilt program from the Controller, then open `Open Watchdog Practice.command` on macOS and connect to the Controller's USB port. The tester requests Disabled and requires a matching Brain watchdog acknowledgement before enabling either timed phase. Driver starts only when you click Run Driver. No `recf_control_enable(true)` call is needed for this native practice workflow.
+Start the rebuilt program from the Controller, then open `RECF Field Control.app` on macOS or `RECF Field Control.exe` on Windows and connect to the Controller's USB port. The tester requests Disabled and requires a matching Brain watchdog acknowledgement before enabling either timed phase. Driver starts only when you click Run Driver. No `recf_control_enable(true)` call is needed for this native practice workflow.
 
 For full setup, connection steps, and hardware checks, see the [Python tester guide](tools/python-practice-watchdog/README.md).
 

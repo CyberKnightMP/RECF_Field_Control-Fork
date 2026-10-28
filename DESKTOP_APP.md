@@ -28,4 +28,4 @@ python -m unittest discover -s tools/python-practice-watchdog -p 'test_*.py'
 python tools/build_practice_app.py
 ```
 
-The build script freezes Python/Tk/pyserial, launches the actual frozen executable for a non-actuating dependency/protocol smoke test, and produces a ZIP plus build/hash manifest. macOS uses one .app bundle; Windows uses a single-file .exe. The GitHub Actions workflow builds on macOS arm64, macOS Intel and Windows. Serial hardware and actual cable removal need a separate physical test.
+The build script freezes Python/Tk/pyserial, launches the actual frozen executable for a non-actuating dependency/protocol smoke test, and produces a ZIP plus build/hash manifest. v1.4.0 additionally creates and closes the actual disconnected GUI in a frozen-executable smoke test. macOS uses one .app bundle; Windows uses a single-file .exe. The GitHub Actions workflow builds on macOS arm64, macOS Intel and Windows. Serial hardware and actual cable removal need a separate physical test.
