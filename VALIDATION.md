@@ -1,5 +1,16 @@
 # Validation record
 
+## v1.2.0 — native practice disconnect watchdog
+
+- The state engine and parser passed Clang AddressSanitizer/UndefinedBehaviorSanitizer tests. Watchdog coverage includes the exact 1500 ms deadline, native field bits, native Driver fallback, a latched stop, stale/wrong-session messages, Disabled-only re-arming with a new token, read-only status, explicit stop and uint32 clock rollover.
+- All 18 Python tests passed, covering the existing phase timing/Disable queue behavior plus Brain acknowledgement matching, split replies, no command retries, heartbeat before Enable, beats while Disabled, timeout rejection and stop on Disconnect.
+- All six overlay objects compiled for Cortex-A9 with ARM GNU 15.2.1. A clean diagnostic project containing the new template linked both cold and hot images. Existing LLEMU deprecation warnings remain.
+- The original working Python tester was preserved separately; the new tool is supplied under tools/python-practice-watchdog.
+- No live mode activation or cable-pull test was performed for this release. The actual robot project still needs the new kernel applied, rebuilt and uploaded. The release is marked as a prerelease pending hardware validation.
+- Coverage and output limitations are documented in [PRACTICE_WATCHDOG.md](PRACTICE_WATCHDOG.md).
+
+## Earlier v1.1.0 validation
+
 Updated for PROS 4.2.2 on macOS Apple silicon. This record describes release v1.1.0; v1.0.0 remains available for PROS 4.2.1.
 
 The 4.2.2 update changes the binary base, compiler, release metadata, version markers and linker scripts. The control engine and wire protocol are unchanged. Native tests and diagnostic linking are rerun for this release; the companion app and simulator checks below were completed on the unchanged protocol implementation for v1.0.0.

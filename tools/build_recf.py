@@ -12,7 +12,7 @@ def main():
     parser.add_argument('--sdk', required=True, type=Path, help='VEX vexv5 directory (containing include/v5_api.h)')
     parser.add_argument('--toolchain', required=True, type=Path, help='ARM GNU bin directory')
     parser.add_argument('--base', required=True, type=Path, help='Official kernel@4.2.2.zip')
-    parser.add_argument('--output', type=Path, default=root/'dist/kernel@4.2.2-recf.1.zip')
+    parser.add_argument('--output', type=Path, default=root/'dist/kernel@4.2.2-recf.2.zip')
     args = parser.parse_args()
     suffix = '.exe' if os.name == 'nt' else ''
     gcc = args.toolchain/('arm-none-eabi-gcc'+suffix)
@@ -64,14 +64,14 @@ def main():
         subprocess.run([str(ar),'rcs',str(package/'firmware/libpros.a'),*map(str,objects)],check=True)
         counts=collections.Counter(subprocess.check_output([str(ar),'t',str(package/'firmware/libpros.a')],text=True).splitlines())
         assert all(counts[obj.name]==1 for obj in objects), 'Duplicate or missing object members'
-        state['version']='4.2.2-recf.1';state['system_files'].append('include/pros/recf_control_state.h')
-        state['metadata']['recf_control_state']='1.1.0'
+        state['version']='4.2.2-recf.2';state['system_files'].append('include/pros/recf_control_state.h')
+        state['metadata']['recf_control_state']='1.2.0'
         (package/'template.pros').write_text(json.dumps(meta,indent=2)+'\n')
         args.output.parent.mkdir(parents=True,exist_ok=True)
         with zipfile.ZipFile(args.output,'w',zipfile.ZIP_DEFLATED) as archive:
             for file in sorted(package.rglob('*')):
                 if file.is_file(): archive.write(file,file.relative_to(package))
-        manifest={'product':'RECF_Control_State','version':'1.1.0','base_kernel':'4.2.2',
+        manifest={'product':'RECF_Control_State','version':'1.2.0','base_kernel':'4.2.2',
                   'base_sha256':sha(args.base),'output_sha256':sha(args.output),
                   'compiler':subprocess.check_output([str(gcc),'--version'],text=True).splitlines()[0],
                   'objects':[o.name for o in objects],

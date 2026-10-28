@@ -9,6 +9,8 @@ with tempfile.TemporaryDirectory(prefix='recf-native-') as folder:
     folder=Path(folder)
     subprocess.run([cc,*flags,'-I'+str(root/'include'),str(root/'src/system/recf_control_core.c'),str(root/'tests/recf/test_core.c'),'-o',str(folder/'core')],check=True)
     subprocess.run([str(folder/'core')],check=True)
+    subprocess.run([cc,*flags,'-I'+str(root/'include'),str(root/'src/system/recf_control_core.c'),str(root/'tests/recf/test_watchdog.c'),'-o',str(folder/'watchdog')],check=True)
+    subprocess.run([str(folder/'watchdog')],check=True)
     # Compile the actual movement section from the production source, without
     # the platform's unrelated getters and RTOS headers. Only VEX IO is stubbed.
     source=(root/'src/devices/vdml_motors.c').read_text()

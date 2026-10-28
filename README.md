@@ -128,3 +128,8 @@ Firmware adaptation: MPL-2.0, as covered by the upstream LICENSE.
 ## Upstream PROS
 
 This repository is a fork of [Purdue SIGBots PROS](https://github.com/purduesigbots/pros), based on `develop-pros-4` at `c0897ad1f70950ea7590424d4527ea7af7d32e51`. [Original upstream README](README_UPSTREAM.md).
+
+
+## Python practice disconnect protection
+
+[Native practice watchdog v1.2.0](PRACTICE_WATCHDOG.md) adds a 1.5-second Brain-side heartbeat timeout with a latched Disabled state. Install `kernel@4.2.2-recf.2`, rebuild/upload your robot program, and use the separate [Python watchdog edition](tools/python-practice-watchdog/README.md). The original software selector and its protocol remain available.

@@ -113,3 +113,46 @@ void recf_parser_feed(recf_parser_t *p, uint8_t b, uint32_t now,
     }
     p->bytes[p->length++] = (char)b;
 }
+
+/* Independent of software mode selection: guards native practice field modes. */
+uint8_t recf_watchdog_status(recf_watchdog_t *w, uint8_t status, uint32_t now) {
+    if (!w->armed) return status;
+    if (!w->tripped && (uint32_t)(now - w->last_seen) >= RECF_WATCHDOG_MS) {
+        w->tripped = true;
+        w->reason = "TIMEOUT";
+    }
+    return w->tripped ? (uint8_t)(status | RECF_DISABLED) : status;
+}
+size_t recf_watchdog_command(recf_watchdog_t *w, const char *line,
+                            uint8_t raw, uint32_t now, bool ready,
+                            char *reply, size_t cap) {
+    uint32_t seq = 0, token = 0;
+    const char *p = line, *error = NULL;
+    recf_watchdog_status(w, raw, now);
+    if (strncmp(p, "@RECF/1 ", 8) || (p += 8, !number(&p, &seq)) || !number(&p, &token)) error = "FORMAT";
+    else if (!strcmp(p, "WATCH_STATUS")) { /* Never renews the lease. */ }
+    else if (!ready) error = "STARTING";
+    else if (!strcmp(p, "WATCH_ARM")) {
+        if (!(raw & RECF_DISABLED)) error = "NOT_DISABLED";
+        else if (w->session == token) error = "SESSION_EXISTS";
+        else if (w->armed && !w->tripped) error = "BUSY";
+        else {
+            w->armed = true; w->tripped = false;
+            w->session = token; w->sequence = seq; w->last_seen = now;
+            w->reason = "ARMED";
+        }
+    } else if (!w->armed || w->session != token) error = "SESSION";
+    else if (seq <= w->sequence) error = "STALE";
+    else if (!strcmp(p, "WATCH_STOP")) {
+        w->sequence = seq; w->tripped = true; w->reason = "STOPPED";
+    } else if (!strcmp(p, "WATCH_BEAT")) {
+        if (w->tripped) error = "EXPIRED";
+        else { w->sequence = seq; w->last_seen = now; w->reason = "HEARTBEAT"; }
+    } else error = "COMMAND";
+    uint8_t effective = recf_watchdog_status(w, raw, now);
+    const char *mode = effective & RECF_DISABLED ? "STOP" : effective & RECF_AUTONOMOUS ? "AUTON" : "DRIVER";
+    int n = snprintf(reply, cap, "@RECF/1 %lu %lu %s %s WATCHDOG %u %s\n",
+        (unsigned long)seq, (unsigned long)token, error ? "ERR" : "OK", mode,
+        (unsigned)raw, error ? error : w->reason ? w->reason : "UNARMED");
+    return n > 0 && (size_t)n < cap ? (size_t)n : 0;
+}

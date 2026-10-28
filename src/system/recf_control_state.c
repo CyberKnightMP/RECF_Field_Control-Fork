@@ -4,9 +4,11 @@
 #include "system/recf_control_core.h"
 #include "v5_api.h"
 #include "vdml/registry.h"
+#include <string.h>
 
 static recf_core_t control;
 static recf_parser_t parser;
+static recf_watchdog_t watchdog;
 static bool runtime_ready;
 extern bool inp_buffer_post(uint8_t byte);
 extern bool ser_output_write(const uint8_t *buffer, size_t size, bool noblock);
@@ -31,6 +33,7 @@ uint8_t recf_control_resolve(uint8_t physical) {
     uint32_t now = millis();
     rtos_suspend_all();
     uint8_t result = recf_core_status(&control, physical, now);
+    result = recf_watchdog_status(&watchdog, result, now);
     rtos_resume_all();
     return result;
 }
@@ -44,7 +47,9 @@ static void frame(const char *bytes, size_t len, void *ign) {
     uint8_t raw = vexCompetitionStatus();
     uint32_t now = millis();
     rtos_suspend_all();
-    size_t n = recf_core_command(&control, bytes, raw, now, reply, sizeof(reply));
+    size_t n = strstr(bytes, " WATCH_")
+        ? recf_watchdog_command(&watchdog, bytes, raw, now, runtime_ready, reply, sizeof(reply))
+        : recf_core_command(&control, bytes, raw, now, reply, sizeof(reply));
     rtos_resume_all();
     // Raw, indivisible protocol records: independent of the user's COBS setting.
     if (n) ser_output_write((const uint8_t *)reply, n, true);
@@ -55,7 +60,8 @@ void recf_control_serial_byte(uint8_t byte) {
 bool recf_control_output_blocked(void) {
     uint8_t raw = vexCompetitionStatus();
     uint8_t effective = recf_control_resolve(raw);
-    return recf_control_is_selected() && !(raw & RECF_CONNECTED) && (effective & RECF_DISABLED);
+    return (watchdog.armed && watchdog.tripped) ||
+        (recf_control_is_selected() && !(raw & RECF_CONNECTED) && (effective & RECF_DISABLED));
 }
 void recf_control_stop_motors(void) {
     port_mutex_take_all();

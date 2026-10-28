@@ -122,7 +122,7 @@ static void _system_daemon_task(void* ign) {
 				task_delete(competition_task);
 			}
 
-			if (software_boundary) recf_control_stop_motors();
+			if (software_boundary || recf_control_output_blocked()) recf_control_stop_motors();
 
 			competition_task = task_create_static(task_fns[state], NULL, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT,
 			                                      task_names[state], competition_task_stack, &competition_task_buffer);
@@ -130,9 +130,7 @@ static void _system_daemon_task(void* ign) {
 
         // Keep zeroing smart motors while software STOP is active, including
         // commands issued by user-created tasks that outlive a mode callback.
-        if (recf_control_is_selected() &&
-            !(recf_control_get_physical_status() & COMPETITION_CONNECTED) &&
-            (competition_get_status() & COMPETITION_DISABLED)) recf_control_stop_motors();
+        if (recf_control_output_blocked()) recf_control_stop_motors();
 		task_delay_until(&time, 2);
 	}
 }

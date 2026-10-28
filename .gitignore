@@ -18,3 +18,7 @@ temp.errors
 # RECF build outputs
 dist/
 work/
+
+# Python test bytecode
+__pycache__/
+*.pyc

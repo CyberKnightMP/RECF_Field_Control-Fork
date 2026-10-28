@@ -35,3 +35,23 @@ const char *recf_mode_name(recf_mode_t mode);
 }
 #endif
 #endif
+
+#ifndef RECF_PRACTICE_WATCHDOG_H
+#define RECF_PRACTICE_WATCHDOG_H
+#ifdef __cplusplus
+extern "C" {
+#endif
+#define RECF_WATCHDOG_MS 1500u
+typedef struct {
+    bool armed, tripped;
+    uint32_t session, sequence, last_seen;
+    const char *reason;
+} recf_watchdog_t;
+uint8_t recf_watchdog_status(recf_watchdog_t *watch, uint8_t status, uint32_t now);
+size_t recf_watchdog_command(recf_watchdog_t *watch, const char *line,
+                            uint8_t physical, uint32_t now, bool ready,
+                            char *reply, size_t capacity);
+#ifdef __cplusplus
+}
+#endif
+#endif
