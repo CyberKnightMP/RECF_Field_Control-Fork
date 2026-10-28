@@ -8,11 +8,12 @@ def sha(path):
 
 def main():
     root = Path(__file__).resolve().parents[1]
+    subprocess.run([os.sys.executable, str(root/'tools/kernel_identity.py'), '--check'], check=True)
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--sdk', required=True, type=Path, help='VEX vexv5 directory (containing include/v5_api.h)')
     parser.add_argument('--toolchain', required=True, type=Path, help='ARM GNU bin directory')
     parser.add_argument('--base', required=True, type=Path, help='Official kernel@4.2.2.zip')
-    parser.add_argument('--output', type=Path, default=root/'dist/kernel@4.2.2-recf.3.zip')
+    parser.add_argument('--output', type=Path, default=root/'dist/kernel@4.2.2-recf.4.zip')
     args = parser.parse_args()
     suffix = '.exe' if os.name == 'nt' else ''
     gcc = args.toolchain/('arm-none-eabi-gcc'+suffix)
@@ -64,20 +65,20 @@ def main():
         subprocess.run([str(ar),'rcs',str(package/'firmware/libpros.a'),*map(str,objects)],check=True)
         counts=collections.Counter(subprocess.check_output([str(ar),'t',str(package/'firmware/libpros.a')],text=True).splitlines())
         assert all(counts[obj.name]==1 for obj in objects), 'Duplicate or missing object members'
-        state['version']='4.2.2-recf.3';state['system_files'].append('include/pros/recf_control_state.h')
-        state['metadata']['recf_control_state']='1.3.0'
+        state['version']='4.2.2-recf.4';state['system_files'].append('include/pros/recf_control_state.h')
+        state['metadata']['recf_control_state']='1.4.0'
         (package/'template.pros').write_text(json.dumps(meta,indent=2)+'\n')
         args.output.parent.mkdir(parents=True,exist_ok=True)
         with zipfile.ZipFile(args.output,'w',zipfile.ZIP_DEFLATED) as archive:
             for file in sorted(package.rglob('*')):
                 if file.is_file(): archive.write(file,file.relative_to(package))
-        manifest={'product':'RECF_Control_State','version':'1.3.0','base_kernel':'4.2.2',
+        manifest={'product':'RECF_Control_State','version':'1.4.0','base_kernel':'4.2.2',
                   'base_sha256':sha(args.base),'output_sha256':sha(args.output),
                   'compiler':subprocess.check_output([str(gcc),'--version'],text=True).splitlines()[0],
                   'objects':[o.name for o in objects],
                   'sources':{name:sha(root/'src'/name) for name in files},
                   'method':'Replace seven archive members; retain other official kernel/SDK objects unchanged.',
-                  'hardware_tested':False}
+                  'hardware_tested':False, 'kernel_identity':json.loads((root/'kernel-identity.json').read_text())}
         (args.output.parent/'BUILD.json').write_text(json.dumps(manifest,indent=2)+'\n')
         print('Built',args.output)
 if __name__=='__main__': main()

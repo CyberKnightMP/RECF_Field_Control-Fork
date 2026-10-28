@@ -21,7 +21,8 @@ import threading
 import time
 from pathlib import Path
 
-APP_VERSION = '1.3.0'
+APP_VERSION = '1.4.0'
+EXPECTED_KERNEL = 'RECF_CONTROL_STATE 4.2.2 1.4.0 98e3505ffe5a3d9f 0000000f'
 IS_WINDOWS = os.name == 'nt'
 
 VERSION_QUERY = bytes.fromhex('c9 36 b8 47 a4')
@@ -386,6 +387,7 @@ class WatchdogPracticeSession(PracticeSession):
     def __init__(self, emit, now=time.monotonic, transact=None):
         super().__init__(emit, now, transact)
         self.watch_armed = False
+        self.kernel_identity = None
         self.watch_token = 0
         self.watch_seq = 0
         self.watch_buffer = ''
@@ -409,6 +411,14 @@ class WatchdogPracticeSession(PracticeSession):
                     self.watch_buffer = self.watch_buffer[-4096:]
                     while '\n' in self.watch_buffer:
                         incoming, self.watch_buffer = self.watch_buffer.split('\n', 1)
+                        if command == 'WATCH_ID':
+                            identity = re.fullmatch(r'@RECF/1 (\d+) (\d+) ID (.+)', incoming)
+                            if identity and int(identity[1]) == seq and int(identity[2]) == self.watch_token:
+                                if identity[3] != EXPECTED_KERNEL:
+                                    raise RuntimeError('Kernel identity mismatch. Expected '+EXPECTED_KERNEL+'; received '+identity[3]+'. Enable is blocked.')
+                                self.kernel_identity = identity[3]
+                                self.emit('KERNEL', 'Verified: '+self.kernel_identity)
+                                return
                         m = re.search(r'@RECF/1 (\d+) (\d+) (OK|ERR) (STOP|AUTON|DRIVER) WATCHDOG (\d+) ([A-Z_]+)$', incoming)
                         if not m or int(m[1]) != seq or int(m[2]) != self.watch_token:
                             continue
@@ -425,7 +435,7 @@ class WatchdogPracticeSession(PracticeSession):
                 pass  # Poll for the Brain's unique reply; never resend the command.
             if self.now() < deadline:
                 write_packet(self.fd, fifo_packet(), self.emit)
-        raise TimeoutError('No matching Brain watchdog acknowledgement. Install kernel 4.2.2-recf.2 and run the rebuilt program. Enable is blocked.')
+        raise TimeoutError('No matching Brain watchdog acknowledgement. Install the matching kernel 4.2.2-recf.4 and run the rebuilt program. Enable is blocked.')
 
     def connect(self, path):
         super().connect(path)
@@ -433,6 +443,7 @@ class WatchdogPracticeSession(PracticeSession):
         self.watch_seq = 0
         self.watch_buffer = ''
         try:
+            self.watch('WATCH_ID')
             self.watch('WATCH_ARM')
             self.watch_armed = True
             self.emit('INFO', 'Brain watchdog armed. Disconnect timeout: 1.5 seconds. Select a phase to enable.')
@@ -453,6 +464,8 @@ class WatchdogPracticeSession(PracticeSession):
 
     def release(self):
         self.watch_armed = False
+        self.kernel_identity = None
+        self.emit('KERNEL', 'Kernel: not verified')
         super().release()
 
     def disconnect(self):
@@ -474,7 +487,7 @@ class WatchdogPracticeSession(PracticeSession):
             raise error
 
 
-def gui():
+def gui(smoke_output=None):
     import tkinter as tk
     from tkinter import ttk, filedialog
     root = tk.Tk()
@@ -491,6 +504,7 @@ def gui():
     generation = 0
     choices = {}
     selection = tk.StringVar()
+    kernel_status = tk.StringVar(value='Kernel: not verified')
     status = tk.StringVar(value='Select the Controller USB port, then Connect Controller.')
     timer = tk.StringVar(value='00:00.0')
     phase_label = tk.StringVar(value='Disconnected')
@@ -614,6 +628,7 @@ def gui():
     disable_button = ttk.Button(toggle_row, text='Disable now', command=lambda: submit('DISABLE'))
     disable_button.pack(side='right')
     ttk.Label(phase_box, text='Each phase ends in Disabled. Driver starts only when you click Run Driver. Enable restarts the last phase.').pack(anchor='w', pady=(10, 0))
+    ttk.Label(outer, textvariable=kernel_status, wraplength=1020).pack(anchor='w', pady=(0, 6))
     ttk.Label(outer, textvariable=status, wraplength=1020).pack(anchor='w', pady=(0, 8))
     frame = ttk.Frame(outer)
     frame.pack(fill='both', expand=True)
@@ -642,6 +657,8 @@ def gui():
         while True:
             try: kind, message = events.get_nowait()
             except queue.Empty: break
+            if kind == 'KERNEL':
+                kernel_status.set(message)
             if kind == 'CONTROL':
                 state.update(message)
                 remaining = state['remaining']
@@ -676,24 +693,34 @@ def gui():
     refresh_controls()
     threading.Thread(target=worker, daemon=True).start()
     pump()
+    if smoke_output:
+        def finish_smoke():
+            smoke_output.write_text(json.dumps({'version': APP_VERSION, 'title': root.title(),
+                'kernel_status': kernel_status.get(), 'connected': session.connected,
+                'controls': [auton_button.cget('text'), driver_button.cget('text'), disable_button.cget('text')]}))
+            root.destroy()
+        root.after(300, finish_smoke)
     root.mainloop()
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--gui-smoke-test-output', type=Path, help=argparse.SUPPRESS)
     parser.add_argument('--self-test-output', type=Path, help=argparse.SUPPRESS)
     parser.add_argument('--list', action='store_true', help='List USB device-to-port mappings')
     parser.add_argument('--port', help='Probe a specific current VEX port; otherwise open the GUI')
     parser.add_argument('--seconds', type=float, default=3)
     parser.add_argument('--passive', action='store_true', help='Listen without sending the version query')
     args = parser.parse_args()
-    if args.self_test_output:
+    if args.gui_smoke_test_output:
+        gui(args.gui_smoke_test_output)
+    elif args.self_test_output:
         import tkinter
         import serial
         args.self_test_output.write_text(json.dumps({'app_version': APP_VERSION,
             'platform': sys.platform, 'tk': tkinter.TkVersion, 'serial': serial.__version__,
             'auton_packet': competition_packet('AUTON', 15).hex(),
-            'watchdog_seconds': WATCHDOG_SECONDS}))
+            'watchdog_seconds': WATCHDOG_SECONDS, 'expected_kernel': EXPECTED_KERNEL}))
     elif args.list:
         print(json.dumps(ports(), indent=2))
     elif args.port:

@@ -1,4 +1,5 @@
 #include "system/recf_control_core.h"
+#include "system/recf_kernel_identity.h"
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
@@ -9,10 +10,16 @@ static void command(recf_watchdog_t *w,const char *line,uint8_t raw,uint32_t now
 }
 int main(void){
  recf_watchdog_t w={0};
+ assert(!strcmp(recf_control_get_kernel_identity(), RECF_KERNEL_DESCRIPTOR));
+ command(&w,"@RECF/1 4294967295 4294967295 WATCH_ID",0,1," ID " RECF_KERNEL_DESCRIPTOR);
+ assert(!w.armed && w.last_seen==0);
+
  for(unsigned i=0;i<256;i++)assert(recf_watchdog_status(&w,(uint8_t)i,5000)==i);
  command(&w,"@RECF/1 1 123 WATCH_ARM",4,10,"NOT_DISABLED");assert(!w.armed);
  assert(recf_watchdog_command(&w,"@RECF/1 1 123 WATCH_ARM",5,10,false,reply,sizeof reply));assert(strstr(reply,"STARTING"));assert(!w.armed);
  command(&w,"@RECF/1 1 123 WATCH_ARM",5,100,"ARMED");assert(w.armed&&!w.tripped);
+ command(&w,"@RECF/1 2 123 WATCH_ID",6,1000," ID " RECF_KERNEL_DESCRIPTOR);
+ assert(w.last_seen==100 && w.sequence==1); /* identity never renews or consumes a beat sequence */
  assert(recf_watchdog_status(&w,6,1599)==6);
  assert(recf_watchdog_status(&w,6,1600)==7);assert(w.tripped);
  assert(recf_watchdog_status(&w,0,1601)==1); /* native field disappears: never fall back to driver */

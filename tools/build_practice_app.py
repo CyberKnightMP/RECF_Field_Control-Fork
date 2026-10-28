@@ -21,13 +21,19 @@ try: assert proc.wait(timeout=60)==0
 except BaseException: proc.kill();raise
 result=json.loads(report.read_text());assert result['app_version']==version
 assert result['auton_packet']=='c936b84758c1050a0f0000004692'
-label='windows-x64' if windows else 'macos-'+('arm64' if platform.machine()=='arm64' else 'x64')
+gui_report=dist/'gui-smoke-test.json'
+proc=subprocess.Popen([str(exe),'--gui-smoke-test-output',str(gui_report)])
+try: assert proc.wait(timeout=60)==0
+except BaseException: proc.kill();raise
+gui=json.loads(gui_report.read_text());assert gui['version']==version and not gui['connected']
+assert gui['kernel_status']=='Kernel: not verified'
+label='windows-x64'  if windows else 'macos-'+('arm64' if platform.machine()=='arm64' else 'x64')
 archive=dist/f'RECF-Field-Control-{version}-{label}.zip'
 if windows:
     with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED) as z:z.write(app,app.name)
 else:subprocess.run(['ditto','-c','-k','--sequesterRsrc','--keepParent',str(app),str(archive)],check=True)
 manifest={'version':version,'platform':label,'sha256':hashlib.sha256(archive.read_bytes()).hexdigest(),
-          'frozen_smoke_test':result,'source_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),
+          'frozen_smoke_test':result,'frozen_gui_smoke_test':gui,'source_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),
           'hardware_tested':False,'signed':False}
 (archive.with_suffix('.json')).write_text(json.dumps(manifest,indent=2)+'\n')
 print(archive)

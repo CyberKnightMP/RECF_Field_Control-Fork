@@ -6,11 +6,16 @@ RECF Field Control now contains the PROS V5 kernel adaptation and the Python pra
 
 The combined Controller + heartbeat application is packaged for macOS Apple silicon, macOS Intel and Windows x64. See [downloads and setup](DESKTOP_APP.md). v1.3.0 adds native app packages and [ADI/pneumatic output blocking](ADI_WATCHDOG.md). The separate v1.4.0 release adds kernel identity verification.
 
-## Downloads
+## Current downloads
+
+- [v1.3.0: standalone apps and ADI guard](https://github.com/Offbrand-Window/RECF_Field_Control/releases/tag/v1.3.0) — existing heartbeat compatibility.
+- [v1.4.0: matching apps and kernel identity](https://github.com/Offbrand-Window/RECF_Field_Control/releases/tag/v1.4.0) — strict version/build verification before arming. See [identity protocol and robot API](KERNEL_IDENTITY.md).
+
+## Earlier downloads
 
 Download the [v1.2.0 kernel and Python watchdog tester](https://github.com/Offbrand-Window/RECF_Field_Control/releases/tag/v1.2.0):
 
-- `kernel@4.2.2-recf.2.zip`: PROS 4.2.2 kernel with the native-practice disconnect watchdog.
+- `kernel@4.2.2-recf.4.zip`: PROS 4.2.2 kernel with the native-practice disconnect watchdog.
 - `RECF-Python-Practice-Watchdog-v1.2.0.zip`: Python tester with Run Autonomous (15 seconds), Run Driver (105 seconds), and Enable/Disable.
 - Build manifest, source patch and SHA-256 checksums accompany the release.
 
@@ -22,7 +27,7 @@ In your existing robot project's PROS terminal:
 
 ```sh
 pros c add-depot recf-control-state "https://raw.githubusercontent.com/Offbrand-Window/RECF_Field_Control/develop-pros-4/depot.json"
-pros c apply kernel@4.2.2-recf.2 --depot recf-control-state --force-apply --force
+pros c apply kernel@4.2.2-recf.4 --depot recf-control-state --force-apply --force
 pros make clean
 pros make
 ```
@@ -39,7 +44,7 @@ The tester sends heartbeats approximately every 200 ms. After 1.5 seconds withou
 
 The original working tester does not send these heartbeats and does not arm the guard. Use the watchdog edition with the rebuilt robot program. A program restart resets the opt-in guard; establish its handshake before enabling practice phases.
 
-Hardware cable-pull validation is still pending. Secure the robot and verify disconnect behavior in both phases before normal use. Direct SDK calls, ADI/pneumatic outputs and separately created tasks require application-specific handling. This is not a firmware/hardware emergency stop.
+Hardware cable-pull and ADI validation is still pending. Secure the robot and verify disconnect behavior in both phases before normal use. The ADI guard holds valve/servo states, prevents further standard PROS output changes and neutralizes PWM motors. Direct SDK calls and other unpatched outputs require application-specific handling. Separate tasks continue to run, but their patched output writes are blocked. This is not a firmware/hardware emergency stop.
 
 ## Source and validation
 
@@ -48,7 +53,7 @@ Hardware cable-pull validation is still pending. Secure the robot and verify dis
 - [Repository migration notes](REPOSITORY_MIGRATION.md)
 - `tools/build_recf.py`: builds the overlay from the official PROS 4.2.2 archive using ARM GNU 15.2.1 and a local VEX SDK.
 - `tests/recf/`: C state/parser/watchdog and smart-motor tests.
-- `tools/python-practice-watchdog/`: Python tester source, launcher and 18 tests.
+- `tools/python-practice-watchdog/`: Python tester source, launcher and 24 tests.
 
 ```sh
 python3 tests/recf/run_native.py

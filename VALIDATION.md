@@ -1,5 +1,13 @@
 # Validation record
 
+## v1.4.0 — exact kernel identity
+
+- All 24 Python tests passed locally, including nonce/sequence-matched identity acceptance, rejected wrong family/version/build/capabilities, and mandatory verification before arming.
+- Native ASan/UBSan tests verify the compiled local identity API, maximum-width request correlation and that identity probes do not renew the watchdog or consume heartbeat sequences. Earlier motor/ADI and watchdog tests remain enabled.
+- The build checks source fingerprint, compiled identity header and app expectation for agreement. Native frozen-package dependency/protocol and disconnected GUI smoke tests are part of packaging.
+- This identifies the build/version; it is not cryptographic authentication. Physical hardware testing remains pending.
+
+
 ## v1.3.0 — desktop packages and ADI guard
 
 - The 20 Python tests passed locally; Windows and Intel macOS frozen packages passed native CI unit and frozen-executable dependency/protocol smoke tests. Apple silicon packaging is checked separately.

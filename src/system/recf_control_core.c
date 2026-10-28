@@ -1,8 +1,11 @@
 /** RECF_Control_State deterministic protocol/state engine. MPL-2.0. */
 #include "system/recf_control_core.h"
+#include "system/recf_kernel_identity.h"
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+
+const char *recf_control_get_kernel_identity(void) { return RECF_KERNEL_DESCRIPTOR; }
 
 const char *recf_mode_name(recf_mode_t mode) {
     static const char *const names[] = {"FIELD", "STOP", "AUTON", "DRIVER"};
@@ -130,6 +133,11 @@ size_t recf_watchdog_command(recf_watchdog_t *w, const char *line,
     const char *p = line, *error = NULL;
     recf_watchdog_status(w, raw, now);
     if (strncmp(p, "@RECF/1 ", 8) || (p += 8, !number(&p, &seq)) || !number(&p, &token)) error = "FORMAT";
+    else if (!strcmp(p, "WATCH_ID")) {
+        int n = snprintf(reply, cap, "@RECF/1 %lu %lu ID %s\n",
+            (unsigned long)seq, (unsigned long)token, recf_control_get_kernel_identity());
+        return n > 0 && (size_t)n < cap ? (size_t)n : 0;
+    }
     else if (!strcmp(p, "WATCH_STATUS")) { /* Never renews the lease. */ }
     else if (!ready) error = "STARTING";
     else if (!strcmp(p, "WATCH_ARM")) {

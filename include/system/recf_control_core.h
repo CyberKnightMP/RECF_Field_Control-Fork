@@ -30,6 +30,7 @@ size_t recf_core_command(recf_core_t *state, const char *line, uint8_t physical,
 /** Reserved @RECF/1 frames are consumed; other input is forwarded unchanged. */
 void recf_parser_feed(recf_parser_t *parser, uint8_t byte, uint32_t now,
                       recf_emit_fn ordinary, recf_emit_fn frame, void *user);
+const char *recf_control_get_kernel_identity(void);
 const char *recf_mode_name(recf_mode_t mode);
 #ifdef __cplusplus
 }

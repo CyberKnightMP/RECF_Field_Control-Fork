@@ -11,6 +11,10 @@ namespace pros { namespace c {
  * Physical competition control always has priority. Disabling this feature
  * returns to physical control; it does not mean a software STOP command.
  */
+/** Read-only compiled kernel identity: family, PROS, RECF, build fingerprint and capabilities.
+ * This is compatibility identification, not a cryptographic authenticity proof.
+ */
+const char *recf_control_get_kernel_identity(void);
 void recf_control_enable(bool enabled);
 bool recf_control_is_enabled(void);
 /** Physical VEX status, before software mode selection. */

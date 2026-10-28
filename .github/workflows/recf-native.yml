@@ -16,6 +16,8 @@ jobs:
       - name: State engine, parser, and motor output tests
         run: python3 tests/recf/run_native.py
       - name: Check depot entry
-        run: python3 -c "import json; d=json.load(open('depot.json')); assert len(d)==4; assert all(t['name']=='kernel' and t['target']=='v5' for t in d); assert {t['version'] for t in d}=={'4.2.1-recf.1','4.2.2-recf.1','4.2.2-recf.2','4.2.2-recf.3'}"
+        run: python3 -c "import json; d=json.load(open('depot.json')); assert len(d)==5; assert all(t['name']=='kernel' and t['target']=='v5' for t in d); assert {t['version'] for t in d}=={'4.2.1-recf.1','4.2.2-recf.1','4.2.2-recf.2','4.2.2-recf.3','4.2.2-recf.4'}"
       - name: Python practice heartbeat and timing tests
         run: python3 -m unittest discover -s tools/python-practice-watchdog -p 'test_*.py'
+      - name: Verify kernel identity and desktop expectation
+        run: python3 tools/kernel_identity.py --check

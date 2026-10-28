@@ -25,3 +25,7 @@ See [tools/python-practice-watchdog/README.md](tools/python-practice-watchdog/RE
 ## Limits
 
 Coverage is the managed PROS autonomous/driver task and patched standard smart-motor APIs. User child tasks, direct SDK output, ADI, pneumatics and other nonmotor outputs require application handling. This is not a firmware/hardware emergency stop. Scheduler operation is required. Hardware cable-pull validation remains necessary after rebuilding and uploading the actual robot program.
+
+## Later releases
+
+v1.3.0 adds the [ADI guard](ADI_WATCHDOG.md) and standalone native app packages. v1.4.0 adds [kernel identity verification](KERNEL_IDENTITY.md) before arming. Use each release's matching instructions and kernel; the protocol and limitations above describe the original v1.2.0 guard.
