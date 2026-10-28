@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build RECF_Control_State against a local VEX SDK and official PROS 4.2.1 archive."""
+"""Build RECF_Control_State against a local VEX SDK and official PROS 4.2.2 archive."""
 import argparse, collections, hashlib, json, os, shutil, subprocess, tempfile, zipfile
 from pathlib import Path
 
@@ -11,8 +11,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--sdk', required=True, type=Path, help='VEX vexv5 directory (containing include/v5_api.h)')
     parser.add_argument('--toolchain', required=True, type=Path, help='ARM GNU bin directory')
-    parser.add_argument('--base', required=True, type=Path, help='Official kernel@4.2.1.zip')
-    parser.add_argument('--output', type=Path, default=root/'dist/kernel@4.2.1-recf.1.zip')
+    parser.add_argument('--base', required=True, type=Path, help='Official kernel@4.2.2.zip')
+    parser.add_argument('--output', type=Path, default=root/'dist/kernel@4.2.2-recf.1.zip')
     args = parser.parse_args()
     suffix = '.exe' if os.name == 'nt' else ''
     gcc = args.toolchain/('arm-none-eabi-gcc'+suffix)
@@ -36,7 +36,7 @@ def main():
                     if text.startswith('#') and line.endswith('\\'): skip=True
                 else: lines.append('__attribute__((pcs("aapcs"))) '+line)
             (patched/header.name).write_text('\n'.join(lines)+'\n')
-        flags=['-mcpu=cortex-a9','-mthumb','-mfpu=neon-fp16','-mfloat-abi=hard','-std=gnu2x','-Os','-g',
+        flags=['-mcpu=cortex-a9','-mthumb','-mfpu=neon-fp16','-mfloat-abi=hard','-std=gnu23','-Os','-g',
                '-ffunction-sections','-fdata-sections','-funwind-tables','-Wall','-Wextra',
                '-Wno-unused-parameter','-Wno-enum-conversion','-D_POSIX_THREADS',
                '-D_UNIX98_THREAD_MUTEX_ATTRIBUTES','-D_POSIX_TIMERS','-D_POSIX_MONOTONIC_CLOCK',
@@ -54,7 +54,7 @@ def main():
                 if not destination.is_relative_to(package): raise ValueError('Unsafe archive path')
             archive.extractall(package)
         meta=json.loads((package/'template.pros').read_text());state=meta['py/state']
-        if state.get('name')!='kernel' or state.get('version')!='4.2.1': raise ValueError('Expected the official PROS 4.2.1 kernel template')
+        if state.get('name')!='kernel' or state.get('version')!='4.2.2': raise ValueError('Expected the official PROS 4.2.2 kernel template')
         members=subprocess.check_output([str(ar),'t',str(package/'firmware/libpros.a')],text=True).splitlines()
         for name in ['system_daemon.c.o','ser_daemon.c.o','controller.c.o','vdml_motors.c.o']:
             if members.count(name)!=1: raise ValueError('Unexpected base archive member: '+name)
@@ -64,14 +64,14 @@ def main():
         subprocess.run([str(ar),'rcs',str(package/'firmware/libpros.a'),*map(str,objects)],check=True)
         counts=collections.Counter(subprocess.check_output([str(ar),'t',str(package/'firmware/libpros.a')],text=True).splitlines())
         assert all(counts[obj.name]==1 for obj in objects), 'Duplicate or missing object members'
-        state['version']='4.2.1-recf.1';state['system_files'].append('include/pros/recf_control_state.h')
-        state['metadata']['recf_control_state']='1.0.0'
+        state['version']='4.2.2-recf.1';state['system_files'].append('include/pros/recf_control_state.h')
+        state['metadata']['recf_control_state']='1.1.0'
         (package/'template.pros').write_text(json.dumps(meta,indent=2)+'\n')
         args.output.parent.mkdir(parents=True,exist_ok=True)
         with zipfile.ZipFile(args.output,'w',zipfile.ZIP_DEFLATED) as archive:
             for file in sorted(package.rglob('*')):
                 if file.is_file(): archive.write(file,file.relative_to(package))
-        manifest={'product':'RECF_Control_State','version':'1.0.0','base_kernel':'4.2.1',
+        manifest={'product':'RECF_Control_State','version':'1.1.0','base_kernel':'4.2.2',
                   'base_sha256':sha(args.base),'output_sha256':sha(args.output),
                   'compiler':subprocess.check_output([str(gcc),'--version'],text=True).splitlines()[0],
                   'objects':[o.name for o in objects],

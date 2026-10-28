@@ -2,9 +2,13 @@
 
 An opt-in adaptation of PROS V5 that selects the existing `autonomous()`, `opcontrol()`, and `disabled()` callbacks from physical competition control or acknowledged desktop messages.
 
+## PROS 4.2.2 update
+
+This release uses the official PROS 4.2.2 kernel, standard libraries, headers and linker scripts. Build robot projects with the PROS 4.2.2 toolchain (ARM GNU 15.2.1; C++26). The text protocol v1 and companion desktop app remain compatible. The previous 4.2.1 release is still available in the depot.
+
 ## Deliverables
 
-- `dist/kernel@4.2.1-recf.1.zip`: installable PROS kernel template, built from the official 4.2.1 binary archive with six modified/new ARM objects. The corresponding upstream files on develop-pros-4 differ from release 4.2.1 only in copyright comments.
+- `dist/kernel@4.2.2-recf.1.zip`: installable PROS kernel template, built from the official 4.2.2 binary archive with six modified/new ARM objects. The corresponding upstream files on develop-pros-4 differ from release 4.2.2 only in copyright comments.
 - `examples/recf_control/main.cpp`: a diagnostic program displaying the selected mode on the Brain, without moving motors or requiring LVGL.
 - `tools/build_recf.py`: reproducible overlay build using an existing VEX C++ SDK and ARM GNU toolchain.
 - `tests/recf/`: native state/parser tests and a trace driver used to compare the desktop simulator to the C implementation.
@@ -12,7 +16,7 @@ An opt-in adaptation of PROS V5 that selects the existing `autonomous()`, `opcon
 
 ## Install in a PROS project
 
-Use a copy of a PROS 4.2.1 project for the first hardware test. This release uses the current text protocol v1; binary bit-mask messages are not part of this version.
+Use a copy of a PROS 4.2.2 project for the first hardware test. This release uses the current text protocol v1; binary bit-mask messages are not part of this version.
 
 ### Install directly from this GitHub repository
 
@@ -20,18 +24,18 @@ Run these commands in the PROS terminal inside the test project:
 
 ```sh
 pros c add-depot recf-control-state "https://raw.githubusercontent.com/Offbrand-Window/RECF_Control_State/develop-pros-4/depot.json"
-pros c apply kernel@4.2.1-recf.1 --depot recf-control-state --force-apply --force
+pros c apply kernel@4.2.2-recf.1 --depot recf-control-state --force-apply --force
 ```
 
 The depot downloads the versioned release ZIP and applies it as the project's kernel.
 
 ### Or download and apply the ZIP manually
 
-Download [kernel@4.2.1-recf.1.zip](https://github.com/Offbrand-Window/RECF_Control_State/releases/download/v1.0.0/kernel%404.2.1-recf.1.zip) from [the release](https://github.com/Offbrand-Window/RECF_Control_State/releases/tag/v1.0.0). Then run:
+Download [kernel@4.2.2-recf.1.zip](https://github.com/Offbrand-Window/RECF_Control_State/releases/download/v1.1.0/kernel%404.2.2-recf.1.zip) from [the release](https://github.com/Offbrand-Window/RECF_Control_State/releases/tag/v1.1.0). Then run:
 
 ```sh
-pros c fetch "/absolute/path/to/kernel@4.2.1-recf.1.zip"
-pros c apply kernel@4.2.1-recf.1 --force-apply --force --no-download
+pros c fetch "/absolute/path/to/kernel@4.2.2-recf.1.zip"
+pros c apply kernel@4.2.2-recf.1 --force-apply --force --no-download
 ```
 
 Download SHA-256 checksums and the build manifest are attached to the same release.
@@ -50,7 +54,7 @@ pros make
 pros upload
 ```
 
-An unmodified robot project does not accept software mode commands. The new header is included by `api.h`. Keep custom-kernel projects on this template: applying a stock kernel replaces these changes. To restore stock behavior, apply the official 4.2.1 kernel and remove the enable call.
+An unmodified robot project does not accept software mode commands. The new header is included by `api.h`. Keep custom-kernel projects on this template: applying a stock kernel replaces these changes. To restore stock behavior, apply the official 4.2.2 kernel and remove the enable call.
 
 ## Desktop test
 
@@ -108,15 +112,15 @@ A reply confirms that the mode was selected by the control engine; the system da
 
 ## Build and validation
 
-See `VALIDATION.md` for actual checks and remaining hardware validation. The private libv5rts submodule is not needed for the supplied overlay build. It compiles the six changed/new objects against locally supplied, ABI-patched VEX headers and replaces matching members in the official stock archive. Remaining kernel and VEX SDK objects are retained unchanged. The public VEX SDK is not redistributed here.
+See `VALIDATION.md` for actual checks and remaining hardware validation. The private libv5rts submodule is not needed for the supplied overlay build. It compiles the six changed/new objects with ARM GNU 15.2.1 against locally supplied, ABI-patched VEX headers and replaces matching members in the official stock archive. Remaining kernel and VEX SDK objects are retained unchanged. The public VEX SDK is not redistributed here.
 
 ```sh
-python3 tools/build_recf.py --sdk /path/to/vexv5 --toolchain /path/to/arm-toolchain/bin --base /path/to/kernel-4.2.1.zip
+python3 tools/build_recf.py --sdk /path/to/vexv5 --toolchain /path/to/arm-toolchain/bin --base /path/to/kernel-4.2.2.zip
 python3 tests/recf/run_native.py
 ```
 
 The prebuilt template and diagnostic have been compiled and linked, but have not been uploaded to or verified on a physical V5 Controller/Brain in this session.
 
 Upstream base: https://github.com/purduesigbots/pros/tree/c0897ad1f70950ea7590424d4527ea7af7d32e51
-Stock binary: https://github.com/purduesigbots/pros/releases/tag/4.2.1
+Stock binary: https://github.com/purduesigbots/pros/releases/tag/4.2.2
 Firmware adaptation: MPL-2.0, as covered by the upstream LICENSE.
