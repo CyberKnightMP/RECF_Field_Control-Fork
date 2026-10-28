@@ -120,11 +120,11 @@ class PracticeTests(unittest.TestCase):
     def test_crc_and_extended_command_must_match(self):
         good = response()
         bad = good[:-1] + bytes([good[-1] ^ 1])
-        with patch.object(tester.select, 'select', return_value=([123], [], [])), patch.object(tester, 'read_chunk', return_value=bad+response(0xc2)+good):
+        with patch.object(tester, 'readable', return_value=True), patch.object(tester, 'read_chunk', return_value=bad+response(0xc2)+good):
             self.assertEqual(tester.wait_for_reply(123, 0x58, 0xc1, 1, lambda *a: None), good)
 
     def test_nack_is_not_success(self):
-        with patch.object(tester.select, 'select', return_value=([123], [], [])), patch.object(tester, 'read_chunk', return_value=response(ack=0xff)):
+        with patch.object(tester, 'readable', return_value=True), patch.object(tester, 'read_chunk', return_value=response(ack=0xff)):
             with self.assertRaisesRegex(RuntimeError, 'rejected'):
                 tester.wait_for_reply(123, 0x58, 0xc1, 1, lambda *a: None)
 

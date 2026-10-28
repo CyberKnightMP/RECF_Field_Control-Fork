@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""macOS VEX USB diagnostic. Python standard library; serial tests and timed Controller competition control."""
+"""RECF Field Control: Controller practice phases and Brain heartbeat watchdog."""
 import argparse
 import binascii
 from contextlib import contextmanager
@@ -14,15 +14,28 @@ import secrets
 import re
 import select
 import subprocess
-import termios
+import sys
+if os.name != "nt":
+    import termios
 import threading
 import time
 from pathlib import Path
+
+APP_VERSION = '1.3.0'
+IS_WINDOWS = os.name == 'nt'
 
 VERSION_QUERY = bytes.fromhex('c9 36 b8 47 a4')
 
 
 def ports():
+    if IS_WINDOWS:
+        from serial.tools.list_ports import comports
+        names = {0x503: 'VEX Robotics V5 Controller', 0x501: 'VEX Robotics V5 Brain'}
+        return sorted([{'port': p.device, 'name': names.get(p.pid, p.description),
+                        'vendor': hex(p.vid), 'product': hex(p.pid or 0),
+                        'location': p.location or ''}
+                       for p in comports() if p.vid == 0x2888],
+                      key=lambda p: ('Controller' not in p['name'], p['port']))
     tree = plistlib.loads(subprocess.check_output(['ioreg', '-r', '-c', 'IOUSBHostDevice', '-a', '-l']))
     result = {}
     def walk(node):
@@ -47,6 +60,16 @@ def ports():
 def open_vex_port(path, emit):
     if path not in {p['port'] for p in ports()}:
         raise ValueError('This is not a current VEX USB port. Click Rescan ports.')
+    if IS_WINDOWS:
+        import serial
+        with serial.Serial(path, baudrate=115200, bytesize=8, parity='N', stopbits=1,
+                           timeout=0, write_timeout=1, rtscts=False, dsrdtr=False) as port:
+            emit('OPEN', f'{path} — 115200 baud, 8 data bits, no parity, 1 stop bit')
+            try:
+                yield port
+            finally:
+                emit('CLOSE', 'Port released.')
+        return
     fd = None
     original = None
     try:
@@ -71,6 +94,18 @@ def open_vex_port(path, emit):
             emit('CLOSE', 'Port released.')
 
 
+def readable(fd, timeout):
+    if not IS_WINDOWS:
+        return bool(select.select([fd], [], [], timeout)[0])
+    deadline = time.monotonic() + timeout
+    while True:
+        if fd.in_waiting:
+            return True
+        if time.monotonic() >= deadline:
+            return False
+        time.sleep(min(0.01, max(0, deadline-time.monotonic())))
+
+
 def write_packet(fd, packet, emit):
     pending = memoryview(packet)
     deadline = time.monotonic() + 2
@@ -78,19 +113,19 @@ def write_packet(fd, packet, emit):
         if time.monotonic() >= deadline:
             raise TimeoutError('Serial write did not complete. Delivery is unconfirmed.')
         try:
-            count = os.write(fd, pending)
+            count = fd.write(pending) if IS_WINDOWS else os.write(fd, pending)
             if count:
                 pending = pending[count:]
             else:
-                select.select([], [fd], [], 0.1)
+                time.sleep(0.01) if IS_WINDOWS else select.select([], [fd], [], 0.1)
         except BlockingIOError:
-            select.select([], [fd], [], 0.1)
+            time.sleep(0.01) if IS_WINDOWS else select.select([], [fd], [], 0.1)
     emit('TX', packet.hex(' '))
 
 
 def read_chunk(fd, emit):
     try:
-        data = os.read(fd, 4096)
+        data = fd.read(4096) if IS_WINDOWS else os.read(fd, 4096)
     except BlockingIOError:
         return b''
     if data:
@@ -139,8 +174,7 @@ def probe(path, seconds, passive, emit, stopped=None):
             if not passive and now >= next_query:
                 write_packet(fd, VERSION_QUERY, emit)
                 next_query = now + 1
-            ready, _, _ = select.select([fd], [], [], 0.1)
-            if not ready:
+            if not readable(fd, 0.1):
                 continue
             data = read_chunk(fd, emit)
             received += len(data)
@@ -167,8 +201,7 @@ def wait_for_reply(fd, command, extended, timeout, emit, stopped=None):
     while time.monotonic() < deadline:
         if stopped and stopped.is_set():
             raise InterruptedError('Stopped waiting for a reply. The device state is unconfirmed.')
-        ready, _, _ = select.select([fd], [], [], 0.1)
-        if not ready:
+        if not readable(fd, 0.1):
             continue
         buffer.extend(read_chunk(fd, emit))
         for frame in extract_frames(buffer):
@@ -445,7 +478,7 @@ def gui():
     import tkinter as tk
     from tkinter import ttk, filedialog
     root = tk.Tk()
-    root.title('VEX Practice Control — Brain Watchdog')
+    root.title('RECF Field Control '+APP_VERSION+' — Brain Watchdog')
     root.geometry('1100x760')
     root.minsize(850, 600)
     outer = ttk.Frame(root, padding=18)
@@ -648,12 +681,20 @@ def gui():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--self-test-output', type=Path, help=argparse.SUPPRESS)
     parser.add_argument('--list', action='store_true', help='List USB device-to-port mappings')
     parser.add_argument('--port', help='Probe a specific current VEX port; otherwise open the GUI')
     parser.add_argument('--seconds', type=float, default=3)
     parser.add_argument('--passive', action='store_true', help='Listen without sending the version query')
     args = parser.parse_args()
-    if args.list:
+    if args.self_test_output:
+        import tkinter
+        import serial
+        args.self_test_output.write_text(json.dumps({'app_version': APP_VERSION,
+            'platform': sys.platform, 'tk': tkinter.TkVersion, 'serial': serial.__version__,
+            'auton_packet': competition_packet('AUTON', 15).hex(),
+            'watchdog_seconds': WATCHDOG_SECONDS}))
+    elif args.list:
         print(json.dumps(ports(), indent=2))
     elif args.port:
         if not 0 < args.seconds <= 600:

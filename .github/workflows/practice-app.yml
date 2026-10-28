@@ -1,0 +1,26 @@
+name: Build Python Field Control apps
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install -r tools/python-practice-watchdog/requirements-build.txt
+      - run: python -m unittest discover -s tools/python-practice-watchdog -p 'test_*.py'
+      - run: python tools/build_practice_app.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RECF-Field-Control-${{ matrix.os }}
+          path: |
+            dist/apps/*.zip
+            dist/apps/RECF-Field-Control-*.json
