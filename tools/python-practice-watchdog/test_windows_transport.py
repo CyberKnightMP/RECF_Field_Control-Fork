@@ -17,3 +17,7 @@ class WindowsTransportTests(unittest.TestCase):
     def test_windows_probe_wait_has_a_deadline(self):
         with patch.object(m,'IS_WINDOWS',True):
             self.assertFalse(m.readable(SimpleNamespace(in_waiting=0),0))
+
+    def test_empty_macos_registry_is_an_empty_port_list(self):
+        with patch.object(m,'IS_WINDOWS',False),patch.object(m.subprocess,'check_output',return_value=b''):
+            self.assertEqual(m.ports(),[])

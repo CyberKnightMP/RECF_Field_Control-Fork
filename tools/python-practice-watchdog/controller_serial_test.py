@@ -21,7 +21,7 @@ import threading
 import time
 from pathlib import Path
 
-APP_VERSION = '1.4.0'
+APP_VERSION = '1.4.1'
 EXPECTED_KERNEL = 'RECF_CONTROL_STATE 4.2.2 1.4.0 98e3505ffe5a3d9f 0000000f'
 IS_WINDOWS = os.name == 'nt'
 
@@ -37,7 +37,10 @@ def ports():
                         'location': p.location or ''}
                        for p in comports() if p.vid == 0x2888],
                       key=lambda p: ('Controller' not in p['name'], p['port']))
-    tree = plistlib.loads(subprocess.check_output(['ioreg', '-r', '-c', 'IOUSBHostDevice', '-a', '-l']))
+    registry = subprocess.check_output(['ioreg', '-r', '-c', 'IOUSBHostDevice', '-a', '-l'])
+    if not registry.strip():
+        return []
+    tree = plistlib.loads(registry)
     result = {}
     def walk(node):
         yield node
