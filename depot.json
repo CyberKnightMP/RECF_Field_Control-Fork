@@ -2,6 +2,22 @@
   {
     "py/object": "pros.conductor.templates.base_template.BaseTemplate",
     "name": "kernel",
+    "version": "4.2.2-recf.3",
+    "supported_kernels": null,
+    "target": "v5",
+    "metadata": {
+      "cold_addr": "58720256",
+      "cold_output": "bin/cold.package.bin",
+      "hot_addr": "125829120",
+      "hot_output": "bin/hot.package.bin",
+      "output": "bin/monolith.bin",
+      "recf_control_state": "1.3.0",
+      "location": "https://github.com/Offbrand-Window/RECF_Field_Control/releases/download/v1.3.0/kernel%404.2.2-recf.3.zip"
+    }
+  },
+  {
+    "py/object": "pros.conductor.templates.base_template.BaseTemplate",
+    "name": "kernel",
     "version": "4.2.2-recf.2",
     "supported_kernels": null,
     "target": "v5",

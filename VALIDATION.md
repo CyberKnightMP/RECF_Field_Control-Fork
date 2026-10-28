@@ -1,5 +1,13 @@
 # Validation record
 
+## v1.3.0 — desktop packages and ADI guard
+
+- The 20 Python tests passed locally; Windows and Intel macOS frozen packages passed native CI unit and frozen-executable dependency/protocol smoke tests. Apple silicon packaging is checked separately.
+- Native ASan/UBSan tests exercise production ADI setter bodies and the expanded stop routine, including internal/expander PWM neutralization, blocked valve/servo/configuration changes, LED rejection and normal behavior after STOP clears.
+- The kernel replaces seven archive members; the additional member is vdml_ext_adi.c.o. Other official PROS 4.2.2 objects remain unchanged. Existing upstream unsigned-comparison warnings in that file do not prevent compilation.
+- Hardware USB, ADI/pneumatic behavior and cable removal still require physical validation.
+
+
 ## v1.2.0 — native practice disconnect watchdog
 
 - The state engine and parser passed Clang AddressSanitizer/UndefinedBehaviorSanitizer tests. Watchdog coverage includes the exact 1500 ms deadline, native field bits, native Driver fallback, a latched stop, stale/wrong-session messages, Disabled-only re-arming with a new token, read-only status, explicit stop and uint32 clock rollover.

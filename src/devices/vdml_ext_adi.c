@@ -15,12 +15,35 @@
 #include <stdio.h>
 
 #include "kapi.h"
+#include "system/recf_control_state.h"
 #include "pros/adi.h"
 #include "pros/ext_adi.h"
 #include "v5_api.h"
 #include "vdml/port.h"
 #include "vdml/registry.h"
 #include "vdml/vdml.h"
+
+/* Guard every SDK ADI configuration/value write, including sensor constructors.
+ * Scheduler suspension makes the check and hardware write indivisible with
+ * respect to the watchdog daemon. Pneumatic/servo/analog state is held; PWM
+ * motors accept only neutral. The system daemon also neutralizes existing PWM.
+ */
+static void recf_adi_config_set(V5_DeviceT device, uint32_t port, V5_AdiPortConfiguration config) {
+    rtos_suspend_all();
+    if (!recf_control_output_blocked()) vexDeviceAdiPortConfigSet(device, port, config);
+    else errno = EACCES;
+    rtos_resume_all();
+}
+static void recf_adi_value_set(V5_DeviceT device, uint32_t port, int32_t value) {
+    rtos_suspend_all();
+    if (!recf_control_output_blocked()) vexDeviceAdiValueSet(device, port, value);
+    else if ((int)vexDeviceAdiPortConfigGet(device, port) == E_ADI_LEGACY_PWM)
+        vexDeviceAdiValueSet(device, port, 0);
+    else errno = EACCES;
+    rtos_resume_all();
+}
+#define vexDeviceAdiPortConfigSet recf_adi_config_set
+#define vexDeviceAdiValueSet recf_adi_value_set
 
 #define ADI_MOTOR_MAX_SPEED 127
 #define ADI_MOTOR_MIN_SPEED -128
@@ -62,6 +85,18 @@ int32_t vexAdiAddrLedSet(uint32_t index, uint32_t port, uint32_t* pData, uint32_
 #ifdef __cplusplus
 }
 #endif
+
+/* LED writes can toggle a pin configured as a pneumatic output as well. */
+static int32_t recf_adi_led_set(V5_DeviceT device, uint32_t port, uint32_t *data,
+                              uint32_t offset, uint32_t length, uint32_t options) {
+    rtos_suspend_all();
+    int32_t result;
+    if (recf_control_output_blocked()) { errno = EACCES; result = PROS_ERR; }
+    else result = vexDeviceAdiAddrLedSet(device, port, data, offset, length, options);
+    rtos_resume_all();
+    return result;
+}
+#define vexDeviceAdiAddrLedSet recf_adi_led_set
 
 #define transform_adi_port(port)       \
 	if (port >= 'a' && port <= 'h')      \
@@ -139,6 +174,7 @@ int32_t ext_adi_port_get_value(uint8_t smart_port, uint8_t adi_port) {
 
 int32_t ext_adi_port_set_config(uint8_t smart_port, uint8_t adi_port, adi_port_config_e_t type) {
 	transform_adi_port(adi_port);
+	if (recf_control_output_blocked()) { errno = EACCES; return PROS_ERR; }
 	claim_port_i(smart_port - 1, E_DEVICE_ADI);
 	vexDeviceAdiPortConfigSet(device->device_info, adi_port, (V5_AdiPortConfiguration)type);
 	return_port(smart_port - 1, 1);
@@ -146,6 +182,7 @@ int32_t ext_adi_port_set_config(uint8_t smart_port, uint8_t adi_port, adi_port_c
 
 int32_t ext_adi_port_set_value(uint8_t smart_port, uint8_t adi_port, int32_t value) {
 	transform_adi_port(adi_port);
+	if (recf_control_output_blocked()) { errno = EACCES; return PROS_ERR; }
 	claim_port_i(smart_port - 1, E_DEVICE_ADI);
 	vexDeviceAdiValueSet(device->device_info, adi_port, value);
 	return_port(smart_port - 1, 1);
@@ -222,6 +259,7 @@ int32_t ext_adi_digital_get_new_press(uint8_t smart_port, uint8_t adi_port) {
 
 int32_t ext_adi_digital_write(uint8_t smart_port, uint8_t adi_port, bool value) {
 	transform_adi_port(adi_port);
+	if (recf_control_output_blocked()) { errno = EACCES; return PROS_ERR; }
 	claim_port_i(smart_port - 1, E_DEVICE_ADI);
 	validate_type(device, adi_port, smart_port - 1, E_ADI_DIGITAL_OUT);
 	vexDeviceAdiValueSet(device->device_info, adi_port, (int32_t)value);
@@ -257,6 +295,10 @@ int32_t ext_adi_motor_set(uint8_t smart_port, uint8_t adi_port, int8_t speed) {
 		speed = ADI_MOTOR_MAX_SPEED;
 	else if (speed < ADI_MOTOR_MIN_SPEED)
 		speed = ADI_MOTOR_MIN_SPEED;
+	if (recf_control_output_blocked()) {
+        if (config == E_ADI_LEGACY_PWM) speed = 0;
+        else { errno = EACCES; return_port(smart_port - 1, PROS_ERR); }
+    }
 	vexDeviceAdiValueSet(device->device_info, adi_port, speed);
 	return_port(smart_port - 1, 1);
 }
@@ -474,6 +516,7 @@ int32_t ext_adi_led_set(ext_adi_led_t led, uint32_t* buffer, uint32_t buffer_len
 		errno = EINVAL;
 		return_port(smart_port - 1, PROS_ERR);
 	}
+	if (recf_control_output_blocked()) { errno = EACCES; return_port(smart_port - 1, PROS_ERR); }
 	uint32_t rtv = (uint32_t)vexDeviceAdiAddrLedSet(device->device_info, adi_port, buffer, 0, buffer_length, 0);
 	return_port(smart_port - 1, rtv);
 }
@@ -491,6 +534,7 @@ int32_t ext_adi_led_set_pixel(ext_adi_led_t led, uint32_t* buffer, uint32_t buff
 		return_port(smart_port - 1, PROS_ERR);
 	}
 	buffer[pixel_position] = color;
+	if (recf_control_output_blocked()) { errno = EACCES; return_port(smart_port - 1, PROS_ERR); }
 	uint32_t rtv = (uint32_t)vexDeviceAdiAddrLedSet(device->device_info, adi_port, buffer, 0, buffer_length, 0);
 	return_port(smart_port - 1, rtv);
 }

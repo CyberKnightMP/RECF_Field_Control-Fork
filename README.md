@@ -2,6 +2,10 @@
 
 RECF Field Control now contains the PROS V5 kernel adaptation and the Python practice controller. This repository was previously named **RECF_Control_State**. The former Electron desktop application is discontinued and preserved in [RECF_Field_Control_Legacy](https://github.com/Offbrand-Window/RECF_Field_Control_Legacy).
 
+## Desktop app releases
+
+The combined Controller + heartbeat application is packaged for macOS Apple silicon, macOS Intel and Windows x64. See [downloads and setup](DESKTOP_APP.md). v1.3.0 adds native app packages and [ADI/pneumatic output blocking](ADI_WATCHDOG.md). The separate v1.4.0 release adds kernel identity verification.
+
 ## Downloads
 
 Download the [v1.2.0 kernel and Python watchdog tester](https://github.com/Offbrand-Window/RECF_Field_Control/releases/tag/v1.2.0):

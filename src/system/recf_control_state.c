@@ -3,6 +3,7 @@
 #include "system/recf_control_state.h"
 #include "system/recf_control_core.h"
 #include "v5_api.h"
+#include "pros/adi.h"
 #include "vdml/registry.h"
 #include <string.h>
 
@@ -66,10 +67,18 @@ bool recf_control_output_blocked(void) {
 void recf_control_stop_motors(void) {
     port_mutex_take_all();
     rtos_suspend_all();
-    for (uint8_t port = 0; port < 21; ++port) {
+    for (uint8_t port = 0; port < INTERNAL_ADI_PORT; ++port) {
         v5_smart_device_s_t *device = registry_get_device_internal(port);
         if (device && device->device_type == E_DEVICE_MOTOR)
             vexDeviceMotorVoltageSet(device->device_info, 0);
+        // Hold valve/analog/servo states. Only legacy PWM motors have an
+        // unambiguous neutral command; include the Brain's internal ADI bank.
+        if (device && device->device_info && (device->device_type == E_DEVICE_ADI || port == INTERNAL_ADI_PORT-1)) {
+            for (uint8_t adi = 0; adi < 8; ++adi) {
+                if ((int)vexDeviceAdiPortConfigGet(device->device_info, adi) == E_ADI_LEGACY_PWM)
+                    vexDeviceAdiValueSet(device->device_info, adi, 0);
+            }
+        }
     }
     rtos_resume_all();
     port_mutex_give_all();
