@@ -42,3 +42,4 @@ recf_control_enable
 recf_control_is_enabled
 recf_control_is_selected
 recf_control_get_physical_status
+recf_control_get_kernel_identity

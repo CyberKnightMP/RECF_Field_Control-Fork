@@ -1,5 +1,17 @@
 # Validation record
 
+## v1.4.2+beta - edge cases or smth from an idiot + 4-instance tests
+- Theoretical updates since I had a skill issue with accessing the VEX SDK
+- Made kernel task access to the shared competition and watchdog state atomic, including the output-blocking decision. The serial parser remains owned by the serial-daemon task.
+- Prevented invalid competition-mode values from indexing beyond the mode-name table.
+- Added a four-instance isolation test and documented physical-field priority and the PROS-facing software-control behavior.
+- Kept the programmer-facing template API-only: it ships the compiled kernel and public header, and the build now rejects packages containing RECF implementation files. The repository itself still contains the source.
+- Refreshed the kernel compatibility fingerprint and the matching desktop checker.
+
+Notes: 
+- Native C state, watchdog, motor, and ADI tests passed, as did all 25 controller tests; identity and packaging-script syntax checks passed. Sanitizers were unavailable in Windows environment, and the ARM cross-compiler/VEX SDK needed for a firmware package build were not available, so hardware and cross-build validation remain outstanding.
+- The published kernel/app artifacts are not rebuilt by these source changes. Rebuild matching artifacts before deploying; the source repository remains source-available, so making the repository itself closed-source would require a separate distribution/access change.
+
 ## v1.4.1 — desktop-only patch
 
 - All 25 Python tests passed, including the empty macOS USB-registry case. An actual port-list invocation with no VEX USB device returned an empty list successfully.

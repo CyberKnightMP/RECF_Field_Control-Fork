@@ -65,5 +65,19 @@ int main(void) {
     // Expired partial reserved frames cannot execute when the remainder arrives.
     for(size_t i=0;i<strlen(input);++i)recf_parser_feed(&p,input[i],0,out,frame,NULL);
     recf_parser_feed(&p,'x',500,out,frame,NULL);assert(no==1&&ordinary[0]=='x');
-    puts("RECF core: arbitration, leases, rollover, sessions, parser and malformed-frame tests passed");
+    recf_core_t brains[4]={0}; char brain_reply[4][128];
+    for(size_t i=0;i<4;++i){
+        char hello[40];
+        recf_core_enable(&brains[i],true);
+        snprintf(hello,sizeof(hello),"@RECF/1 1 %u HELLO",(unsigned)(100+i));
+        assert(recf_core_command(&brains[i],hello,0,10,brain_reply[i],sizeof(brain_reply[i]))>0);
+        assert(strstr(brain_reply[i],"OK STOP SOFTWARE"));
+    }
+    assert(recf_core_command(&brains[2],"@RECF/1 2 102 AUTON",0,20,
+                             brain_reply[2],sizeof(brain_reply[2]))>0);
+    for(size_t i=0;i<4;++i)
+        assert(recf_core_status(&brains[i],0,30)==(i==2 ? RECF_AUTONOMOUS : RECF_DISABLED));
+    assert(!strcmp(recf_mode_name((recf_mode_t)-1),"UNKNOWN"));
+    assert(!strcmp(recf_mode_name((recf_mode_t)4),"UNKNOWN"));
+    puts("RECF core: arbitration, leases, rollover, sessions, parser, malformed-frame and four-instance tests passed");
 }

@@ -2,7 +2,7 @@
   "family": "RECF_CONTROL_STATE",
   "pros": "4.2.2",
   "recf": "1.4.0",
-  "fingerprint": "98e3505ffe5a3d9f",
+  "fingerprint": "150ebc6f6add7762",
   "capabilities": {
     "native_practice": 1,
     "heartbeat_watchdog": 2,
@@ -10,18 +10,18 @@
     "identity": 8
   },
   "capability_mask": "0000000f",
-  "descriptor": "RECF_CONTROL_STATE 4.2.2 1.4.0 98e3505ffe5a3d9f 0000000f",
+  "descriptor": "RECF_CONTROL_STATE 4.2.2 1.4.0 150ebc6f6add7762 0000000f",
   "sources": {
-    "src/system/recf_control_core.c": "d62640b82c3221a6fac06be085ce4852c6d52472a5b875b94d7193c68d4bd77b",
-    "src/system/recf_control_state.c": "b5d9d27df3e46c508673212c90983dc7cff57f37d61368575f30d2e94cb62b45",
-    "src/system/system_daemon.c": "2e71f53597973a6bfb0350ddf36d12d18c006f54e38d844f8460708166be2d98",
-    "src/system/dev/ser_daemon.c": "b79899339cb3f53dab39325a2ac3824d47be2ba993671e0e5aa0726b405480ce",
-    "src/devices/controller.c": "080311d3ece2e2c49071195d1d8382e567e5f7ec261e2274dd48b1cd7479d4f2",
-    "src/devices/vdml_motors.c": "0761f523066d65b4125a6515e45d035995df64437975e390cd2b2b51f10002d2",
-    "src/devices/vdml_ext_adi.c": "e2329938a53358f8da9c4ee4ebbc5463272628a8cb4966fc35c5a83407734595",
-    "include/pros/recf_control_state.h": "72bbbf80a24aade7aa796c391a087751144dc1aa2631dd638db08c03faeb4bd6",
-    "include/system/recf_control_core.h": "7bc1a3811785c56b13e843622e8d4ab9cfc5cebc201a8079385178642794e843",
-    "include/system/recf_control_state.h": "1b0d4a20c561181b8e7f2e818c9d14f6541c53534d8fdbc39428d7789f530c53"
+    "src/system/recf_control_core.c": "a0969e47bfe113164e996a15532a79fe8f0744f54ca37e5231d9a9e52a41850b",
+    "src/system/recf_control_state.c": "cfe4cfb663367bb9b0e558a7b6c81c27172ad61de3ad49ad1545adf104a867b4",
+    "src/system/system_daemon.c": "56fdc866acb8e0e6f590d00bb096c338c55e77c493ad98514ec4dfa9b7c0bfb9",
+    "src/system/dev/ser_daemon.c": "58a0e51fc0d83d2028aaf81c0ca8a731cc01df52210b0f5745e9d9d6cb7274bf",
+    "src/devices/controller.c": "d226f42c18c7b1348c03d011528e93952041868444e964ccf9e6284652ba06dd",
+    "src/devices/vdml_motors.c": "e62cac40608e12037a3acb6476bf4a25a7d5d5d23cb53bb3bf98fbba8044c568",
+    "src/devices/vdml_ext_adi.c": "94021fe14f7bd633722d3dd9640f5c8df9ab557c507b67e6c216b80fb32b3660",
+    "include/pros/recf_control_state.h": "2f5dd3555cd758bc701df9e991fc693c60cbe6c955eb79b65b553ec28eac1948",
+    "include/system/recf_control_core.h": "f00f8b72040f4208443b066a7c27e666bc013934237979d6fda3a4cd9048dfea",
+    "include/system/recf_control_state.h": "3e348fc02599559873ca2694f768ef6edbdbf3b7d382689f445ed1f6ae112977"
   },
   "cryptographic_authenticity": false
 }

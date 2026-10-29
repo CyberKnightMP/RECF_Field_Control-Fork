@@ -1,0 +1,35 @@
+{
+  "configurations": [
+    {
+      "name": "PROS V5",
+      "compilerPath": "c:\\Users\\maksp\\AppData\\Roaming\\Code\\User\\globalStorage\\sigbots.pros\\install\\pros-toolchain-windows\\usr\\bin\\arm-none-eabi-g++",
+      "compileCommands": "${workspaceFolder}/compile_commands.json",
+      "compilerArgs": [
+        "-mcpu=cortex-a9",
+        "-mfpu=neon-fp16",
+        "-mfloat-abi=hard",
+        "-mthumb"
+      ],
+      "includePath": [
+        "${workspaceFolder}/include",
+        "${workspaceFolder}/src",
+        "${workspaceFolder}/firmware/libv5rts/sdk/vexv5/patched_include",
+        "c:\\Users\\maksp\\OneDrive\\Vex VRC\\Templates\\RECF_Field_Control-Fork\\include"
+      ],
+      "defines": [
+        "_INTELLISENSE"
+      ],
+      "cStandard": "gnu11",
+      "cppStandard": "gnu++20",
+      "intelliSenseMode": "gcc-arm",
+      "browse": {
+        "path": [
+          "c:\\Users\\maksp\\OneDrive\\Vex VRC\\Templates\\RECF_Field_Control-Fork"
+        ],
+        "limitSymbolsToIncludedHeaders": true,
+        "databaseFilename": ""
+      }
+    }
+  ],
+  "version": 4
+}

@@ -9,6 +9,8 @@ const char *recf_control_get_kernel_identity(void) { return RECF_KERNEL_DESCRIPT
 
 const char *recf_mode_name(recf_mode_t mode) {
     static const char *const names[] = {"FIELD", "STOP", "AUTON", "DRIVER"};
+    // edge case: if the enum is corrupted, return a string instead of crashing.
+    if ((unsigned)mode >= sizeof(names) / sizeof(names[0])) return "UNKNOWN";
     return names[mode];
 }
 void recf_core_enable(recf_core_t *s, bool enabled) {

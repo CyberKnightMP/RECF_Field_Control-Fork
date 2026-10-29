@@ -15,7 +15,11 @@ extern bool inp_buffer_post(uint8_t byte);
 extern bool ser_output_write(const uint8_t *buffer, size_t size, bool noblock);
 /** Downstream serial parsing (the original PROS serial daemon). */
 extern void ser_process_byte(uint8_t byte);
-
+/* Caller must suspend the scheduler before reading or mutating shared state. */
+static uint8_t resolve_state_locked(uint8_t physical, uint32_t now) {
+    uint8_t result = recf_core_status(&control, physical, now);
+    return recf_watchdog_status(&watchdog, result, now);
+}
 void recf_control_enable(bool enabled) {
     rtos_suspend_all();
     recf_core_enable(&control, enabled);
@@ -27,14 +31,23 @@ void recf_control_mark_ready(void) {
     runtime_ready = true; control.ready = true;
     rtos_resume_all();
 }
-bool recf_control_is_enabled(void) { return control.enabled; }
-bool recf_control_is_selected(void) { return control.enabled && control.selected; }
+bool recf_control_is_enabled(void) {
+    rtos_suspend_all();
+    bool enabled = control.enabled;
+    rtos_resume_all();
+    return enabled;
+}
+bool recf_control_is_selected(void) {
+    rtos_suspend_all();
+    bool selected = control.enabled && control.selected;
+    rtos_resume_all();
+    return selected;
+}
 uint8_t recf_control_get_physical_status(void) { return vexCompetitionStatus(); }
 uint8_t recf_control_resolve(uint8_t physical) {
     uint32_t now = millis();
     rtos_suspend_all();
-    uint8_t result = recf_core_status(&control, physical, now);
-    result = recf_watchdog_status(&watchdog, result, now);
+    uint8_t result = resolve_state_locked(physical, now);
     rtos_resume_all();
     return result;
 }
@@ -56,20 +69,27 @@ static void frame(const char *bytes, size_t len, void *ign) {
     if (n) ser_output_write((const uint8_t *)reply, n, true);
 }
 void recf_control_serial_byte(uint8_t byte) {
+    // The serial daemon is the sole owner of parser, so parsing needs no lock.
     recf_parser_feed(&parser, byte, millis(), ordinary, frame, NULL);
 }
 bool recf_control_output_blocked(void) {
     uint8_t raw = vexCompetitionStatus();
-    uint8_t effective = recf_control_resolve(raw);
-    return (watchdog.armed && watchdog.tripped) ||
-        (recf_control_is_selected() && !(raw & RECF_CONNECTED) && (effective & RECF_DISABLED));
+    uint32_t now = millis();
+    rtos_suspend_all();
+    uint8_t effective = resolve_state_locked(raw, now);
+    bool blocked = (watchdog.armed && watchdog.tripped) ||
+        (control.enabled && control.selected && !(raw & RECF_CONNECTED) &&
+         (effective & RECF_DISABLED));
+    rtos_resume_all();
+    return blocked;
 }
 void recf_control_stop_motors(void) {
     port_mutex_take_all();
     rtos_suspend_all();
     for (uint8_t port = 0; port < INTERNAL_ADI_PORT; ++port) {
         v5_smart_device_s_t *device = registry_get_device_internal(port);
-        if (device && device->device_type == E_DEVICE_MOTOR)
+        // Zero smart-motor commands during software STOP and before mode transitions.
+        if (device && device->device_info && device->device_type == E_DEVICE_MOTOR)
             vexDeviceMotorVoltageSet(device->device_info, 0);
         // Hold valve/analog/servo states. Only legacy PWM motors have an
         // unambiguous neutral command; include the Brain's internal ADI bank.

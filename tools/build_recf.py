@@ -62,6 +62,14 @@ def main():
         for name in ['api.h','pros/recf_control_state.h']:
             shutil.copyfile(root/'include'/name,package/'include'/name)
         shutil.copyfile(root/'examples/recf_control/main.cpp',package/'src/main.cpp')
+        private_files = [
+            'include/system/recf_control_core.h',
+            'include/system/recf_control_state.h',
+            'include/system/recf_kernel_identity.h',
+            *('src/'+name for name in files),
+        ]
+        leaked = [name for name in private_files if (package/name).exists()]
+        if leaked: raise ValueError('Private RECF implementation files in user template: '+', '.join(leaked))
         subprocess.run([str(ar),'rcs',str(package/'firmware/libpros.a'),*map(str,objects)],check=True)
         counts=collections.Counter(subprocess.check_output([str(ar),'t',str(package/'firmware/libpros.a')],text=True).splitlines())
         assert all(counts[obj.name]==1 for obj in objects), 'Duplicate or missing object members'

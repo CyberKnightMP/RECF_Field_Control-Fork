@@ -22,7 +22,7 @@ import time
 from pathlib import Path
 
 APP_VERSION = '1.4.1'
-EXPECTED_KERNEL = 'RECF_CONTROL_STATE 4.2.2 1.4.0 98e3505ffe5a3d9f 0000000f'
+EXPECTED_KERNEL = 'RECF_CONTROL_STATE 4.2.2 1.4.0 150ebc6f6add7762 0000000f'
 IS_WINDOWS = os.name == 'nt'
 
 VERSION_QUERY = bytes.fromhex('c9 36 b8 47 a4')

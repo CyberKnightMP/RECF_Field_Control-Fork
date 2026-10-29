@@ -32,6 +32,8 @@ Upload the rebuilt project to the Brain using your normal PROS workflow, selecti
 
 Start the rebuilt program from the Controller, then open `RECF Field Control.app` on macOS or `RECF Field Control.exe` on Windows and connect to the Controller's USB port. The tester requests Disabled and requires a matching Brain watchdog acknowledgement before enabling either timed phase. Driver starts only when you click Run Driver. No `recf_control_enable(true)` call is needed for this native practice workflow.
 
+The kernel programming template ships the compiled kernel library and the user-facing `pros/recf_control_state.h` API; RECF protocol, state-engine and kernel-integration headers/sources are not copied into robot projects. The source repository remains buildable and contains implementation source. Each V5 Brain runs its own kernel state, parser and watchdog instance: installing the same kernel on four Brains gives four independent sessions and competition-state decisions. The software selector adapts PROS competition callbacks without changing the physical VEX field connection, which retains priority.
+
 For full setup, connection steps, and hardware checks, see the [Python tester guide](tools/python-practice-watchdog/README.md).
 
 ## Disconnect behavior
